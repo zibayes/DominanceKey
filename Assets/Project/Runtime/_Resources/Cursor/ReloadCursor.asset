@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73acb7de2d9f7e740a094747466ea3fa, type: 3}
+  m_Name: ReloadCursor
+  m_EditorClassIdentifier: Assembly-CSharp:VariableCode.Cursor:CursorDataObject
+  data:
+  - image:
+    - {fileID: 2800000, guid: 69a23b42c1659ff4d94cb9469a1539b0, type: 3}
+    - {fileID: 2800000, guid: 52f70aef6ff3b284baae7a7037a24b98, type: 3}
+    - {fileID: 2800000, guid: 7482817a6218575428f1c0cd86e6befb, type: 3}
+    - {fileID: 2800000, guid: 0334d3f7a4e594f48a0ba72b5e050098, type: 3}
+    - {fileID: 2800000, guid: 33ed24c0c78f02e42918ec3ba0606e47, type: 3}
+    - {fileID: 2800000, guid: 30753d6a3e2eae64fab0bc0e5b4c9365, type: 3}
+    - {fileID: 2800000, guid: cf4fb68b64bf54946a4fed2503bd6e0e, type: 3}
+    - {fileID: 2800000, guid: 17d1825969f0f54409c6b963ef0d2183, type: 3}
+    - {fileID: 2800000, guid: eedcc83dea2911647bd1e7756a6f9496, type: 3}
+    hotSpot: {x: 16, y: 16}
+    timePerFrame: 0.28
+    timeDelay: 0
