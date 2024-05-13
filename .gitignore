@@ -72,4 +72,4 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 # Custom derictories
-/[Aa]ssets/[Pp]roject/[Rr]untime/[Ee]xternal [Aa]ssets/[Ss]oldier/*
+/[Aa]ssets/[Pp]roject/[Rr]untime/ExternalAssets/[Ss]oldier/*
