@@ -15,12 +15,14 @@ public class TankController : MonoBehaviour
     public Transform canvas;
     public Transform cameraRig;
 
+    public int player;
     public Animator animator;
     public Rigidbody rigidbody;
     public NavMeshAgent agent;
     public SelectableCharacter selection;
     public float roatationSpeed = 0.7f;
     public float turretRoatationSpeed = 0.1f;
+    public float turretRoatationThreshold = 0.15f;
     public float rotationProgress = 0f;
     public float speed = 6f;
     public Vector3 directionVector;
@@ -37,11 +39,12 @@ public class TankController : MonoBehaviour
     public float currentFuel = 500f;
 
     public ParticleSystem muzzleFlash;
-    public BulletTracer bulletTracer;
+    public MissaleTracer missaleTracer;
 
     public AudioClip shootSFX;
     public AudioClip reloadSFX;
     public AudioSource audioSourceShoot;
+    public Animator gunAnimator;
 
     public AudioClip[] mgunShootSFX;
     public AudioClip mgunReloadSFX;
@@ -55,6 +58,8 @@ public class TankController : MonoBehaviour
     public AudioSource audioSourceEngine;
     public AudioClip turretSFX;
     public AudioSource audioSourceTurret;
+    public Animator animatorChasisLeft;
+    public Animator animatorChasisRight;
 
 
     public float standardSpeed = 6f;
@@ -96,6 +101,12 @@ public class TankController : MonoBehaviour
         else
             firingAimDecrease = 0f;
 
+        if (currentFuel <= 0f)
+        {
+            agent.ResetPath();
+            currentFuel = 0f;
+        }
+
         // Moving handlers
         if (afteburner)
         {
@@ -107,35 +118,28 @@ public class TankController : MonoBehaviour
         }
         if (agent.remainingDistance > 0)
         {
-            /*
-            animator.SetFloat("v", 1f);
-            animator.SetFloat("h", 0f);
-            if (afteburner)
-            {
-                animator.SetFloat("Speed", Mathf.Clamp(agent.remainingDistance, -1f, 1f));
-            }
-            else
-            {
-                animator.SetFloat("Speed", Mathf.Clamp(agent.remainingDistance, -0.3f, 0.3f));
-            }
-            animator.SetBool("Move", true);
-            */
             firingAimDecrease += 0.1f;
             if (!audioSourceMove.isPlaying)
             {
                 audioSourceMove.PlayOneShot(moveSFX);
                 audioSourceEngine.PlayOneShot(engineSFX);
             }
+
+            if (afteburner)
+                currentFuel -= 0.08f;
+            else
+                currentFuel -= 0.04f;
         }
         else
         {
             // Stop moving
             if (audioSourceMove.isPlaying && !Input.GetKey(KeyCode.LeftControl) && !UIController.isActiveManualControl)
             {
-                // animator.SetBool("Move", false);
                 agent.ResetPath();
                 rigidbody.velocity = Vector3.zero;
                 audioSourceMove.Stop();
+                animatorChasisLeft.SetBool("isMoving", false);
+                animatorChasisRight.SetBool("isMoving", false);
                 audioSourceEngine.Stop();
                 audioSourceEngine.PlayOneShot(engineEndSFX);
                 afteburner = false;
@@ -147,7 +151,7 @@ public class TankController : MonoBehaviour
             firingAimDecrease = firingAimDecreaseMax;
 
         // Point-and-click Controls
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) && currentFuel > 0f)
         {
             afteburner = false;
             rightMouseButtonTaps++;
@@ -159,6 +163,8 @@ public class TankController : MonoBehaviour
             {
                 audioSourceEngine.Stop();
                 audioSourceEngine.PlayOneShot(engineUpSFX);
+                animatorChasisLeft.SetBool("isMoving", true);
+                animatorChasisRight.SetBool("isMoving", true);
                 MoveToPoint(hit.point);
             }
         }
@@ -184,47 +190,64 @@ public class TankController : MonoBehaviour
             {
                 h *= -1; // Imitate tank rotation on moving back
             }
+            if (h != 0 || v == 0)
+            {
+                animatorChasisLeft.SetFloat("Speed", h);
+                animatorChasisRight.SetFloat("Speed", -h);
+            }
+            else
+            {
+                animatorChasisLeft.SetFloat("Speed", v);
+                animatorChasisRight.SetFloat("Speed", v);
+            }
             if (h != 0 || v != 0)
             {
                 if (!audioSourceMove.isPlaying)
                 {
+                    animatorChasisLeft.SetBool("isMoving", true);
+                    animatorChasisRight.SetBool("isMoving", true);
                     audioSourceMove.PlayOneShot(moveSFX);
                     audioSourceEngine.PlayOneShot(engineSFX);
                 }
+                currentFuel -= 0.04f;
             }
             else
             {
                 audioSourceMove.Stop();
-            }
-            directionVector = transform.forward * v;
-            directionVector.y = 0;
-            rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
-            transform.Rotate(0, h * roatationSpeed, 0, Space.Self);
-            // animator.SetFloat("Speed", Vector3.ClampMagnitude(directionVector, 1).magnitude);
-            if (Vector3.ClampMagnitude(directionVector, 1).magnitude > 0)
-            {
-                if (rigidbody.velocity.magnitude == 0)
-                {
-                    audioSourceEngine.Stop();
-                    audioSourceEngine.PlayOneShot(engineUpSFX);
-                }
-                rigidbody.velocity = Vector3.ClampMagnitude(directionVector, 1) * speed * 1.5f;
-                // animator.SetBool("Move", true);
-                firingAimDecrease += 0.15f;
-            }
-            else
-            {
-                if (rigidbody.velocity.magnitude > 0)
-                {
-                    audioSourceEngine.Stop();
-                    audioSourceEngine.PlayOneShot(engineEndSFX);
-                }
-                rigidbody.velocity = Vector3.zero;
+                animatorChasisLeft.SetBool("isMoving", false);
+                animatorChasisRight.SetBool("isMoving", false);
             }
 
-            var localCoords = transform.InverseTransformDirection(directionVector);
-            // animator.SetFloat("h", localCoords.z);
-            // animator.SetFloat("v", localCoords.x);
+            if (currentFuel > 0f)
+            {
+                directionVector = transform.forward * v;
+                directionVector.y = 0;
+                rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0, rigidbody.velocity.z);
+                transform.Rotate(0, h * roatationSpeed, 0, Space.Self);
+                if (Vector3.ClampMagnitude(directionVector, 1).magnitude > 0)
+                {
+                    if (rigidbody.velocity.magnitude == 0)
+                    {
+                        audioSourceEngine.Stop();
+                        audioSourceEngine.PlayOneShot(engineUpSFX);
+                        animatorChasisLeft.SetBool("isMoving", true);
+                        animatorChasisRight.SetBool("isMoving", true);
+                    }
+                    rigidbody.velocity = Vector3.ClampMagnitude(directionVector, 1) * speed * 1.5f;
+                    firingAimDecrease += 0.15f;
+                }
+                else
+                {
+                    if (rigidbody.velocity.magnitude > 0)
+                    {
+                        animatorChasisLeft.SetBool("isMoving", false);
+                        animatorChasisRight.SetBool("isMoving", false);
+                        audioSourceEngine.Stop();
+                        audioSourceEngine.PlayOneShot(engineEndSFX);
+                    }
+                    rigidbody.velocity = Vector3.zero;
+                }
+            }
 
             spreadSize = effectiveDistance - firingAimDecrease;
 
@@ -297,15 +320,13 @@ public class TankController : MonoBehaviour
         }
 
         agent.SetDestination(directionVector);
-        // animator.SetFloat("Speed", Vector3.ClampMagnitude(directionVector, 1).magnitude);
-        // animator.SetBool("Move", true);
     }
 
     public void Rotate(Vector3 point)
     {
         aimTargetCursor.transform.position = point;
         var result = Vector3.Lerp(rig.transform.position, aimTargetCursor.transform.position, turretRoatationSpeed);
-        if ((result - rig.transform.position).magnitude > 0.12f)
+        if ((result - rig.transform.position).magnitude > turretRoatationThreshold)
         {
             if (!audioSourceTurret.isPlaying)
                 audioSourceTurret.PlayOneShot(turretSFX);
@@ -315,28 +336,10 @@ public class TankController : MonoBehaviour
             audioSourceTurret.Stop();
         }
         rig.transform.position = result;
-        /*
-        var currentY = transform.eulerAngles.y;
-        var currentTargetY = Quaternion.LookRotation(point - transform.position).eulerAngles.y;
-        while (currentY < 0)
-            currentY += 360;
-        while (currentTargetY < 0)
-            currentTargetY += 360;
-        if (Mathf.Abs(currentY - currentTargetY) > 40)
-            onRotate = true;
-        if (onRotate)
-        {
-            if (Mathf.Abs(currentY - currentTargetY) < 3)
-                onRotate = false;
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(point - transform.position), Time.deltaTime * roatationSpeed);
-        }
-        */
     }
 
     public void Aiming(Vector3 pointToRotate, float spreadSize, bool manualControl)
     {
-        // animator.SetBool("Aim", true);
-
         if (manualControl)
         {
             RaycastHit hitBarrier;
@@ -393,9 +396,11 @@ public class TankController : MonoBehaviour
             {
                 cursorSwitcher.ChangeType("fire");
             }
+            if (gunAnimator != null)
+                gunAnimator.SetTrigger("Fire");
 
             nextShoot = Time.time + 1f / fireRate;
-            // firingAimDecrease += selection.currentWeapon.AimDecrease;
+            firingAimDecrease += selection.currentWeapon.AimDecrease;
             audioSourceShoot.PlayOneShot(shootSFX);
             muzzleFlash.Play();
             ParticleSystem flash = Instantiate(muzzleFlash, currentWeapon.transform.position, currentWeapon.transform.rotation);
@@ -403,7 +408,7 @@ public class TankController : MonoBehaviour
 
             var spread = 60f / spreadSize;
             Ray shootRay = new Ray(currentWeapon.transform.position, Quaternion.Euler(0, Random.Range(-spread, spread), Random.Range(-spread, spread)) * currentWeapon.transform.forward);
-            BulletTracer currentBulletTracer = Instantiate(bulletTracer, currentWeapon.transform.position, Quaternion.LookRotation(shootRay.direction));
+            MissaleTracer currentBulletTracer = Instantiate(missaleTracer, currentWeapon.transform.position, Quaternion.LookRotation(shootRay.direction));
             currentBulletTracer.selfRigidbody.AddForce(shootRay.direction.normalized * 100f, ForceMode.Impulse);
             /*
             currentBulletTracer.damage = selection.currentWeapon.damage;
@@ -453,6 +458,16 @@ public class TankController : MonoBehaviour
         {
             lineDrawerNoContact.lineSize = 0f;
             lineDrawerNoContact.DrawLineInGameView(currentWeapon.transform.position, Vector3.forward, Color.white);
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        Debug.Log(collision.gameObject.name);
+        PlayerController playerController = collision.gameObject.GetComponentInParent<PlayerController>();
+        if (playerController != null)
+        {
+            playerController.ReceiveDamage(player, collision.gameObject, collision, playerController.selection.maxHealth, Input.GetKey(KeyCode.LeftControl) || UIController.isActiveManualControl);
         }
     }
 }

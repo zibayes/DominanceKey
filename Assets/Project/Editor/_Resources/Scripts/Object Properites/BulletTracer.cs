@@ -1,16 +1,8 @@
-using HutongGames.PlayMaker;
-using HutongGames.PlayMaker.Actions;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class BulletTracer : MonoBehaviour
 {
-    private SelectManager selectManager;
-    private Transform canvas;
-
     public float tracerLife = 3f;
     public float damage;
     public float distanceKoef;
@@ -32,25 +24,16 @@ public class BulletTracer : MonoBehaviour
     private float hitForce = 1.4f;
     public int currentPlayer;
     public bool manualControl;
-    // Start is called before the first frame update
+
     void Start()
     {
-        selectManager = GameObject.Find("SelectingBox").GetComponent<SelectManager>();
-        canvas = GameObject.Find("Canvas").transform;
         Destroy(gameObject, tracerLife);
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 
     private void OnCollisionEnter(Collision collision)
     {
         if (isFirstEnter)
         {
-            // Debug.Log(collision.gameObject.name);
             GameObject currentHitEffect;
             PlayerController playerController = collision.gameObject.GetComponentInParent<PlayerController>();
             if (playerController != null)
