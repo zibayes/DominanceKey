@@ -3,6 +3,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.UI;
 using VariableCode.Cursor;
 
 public class TankController : MonoBehaviour
@@ -27,15 +28,22 @@ public class TankController : MonoBehaviour
     public float rotationProgress = 0f;
     public float speed = 6f;
     public Vector3 directionVector;
-    public float nextShoot = 0f;
+    public float rotationVector;
+    public float reloadOver = 0f;
     public LayerMask whatCanBeClickedOn;
-    public bool afteburner = false;
+
     public float spreadSize;
-    public float fireRate = 1f;
     public float effectiveDistance = 60f;
     public float firingAimDecrease = 0f;
     public float firingAimDecreaseMax = 10f;
     public float aimDecrease;
+
+    public bool mainGunLoaded = true;
+    public bool mainGunOnReload = false;
+    public float mainGunAimDecrease = 10f;
+    public float mainGunReloadTime = 2.4f;
+    public string mainGunAmmoType;
+
     public float maxFuel = 500f;
     public float currentFuel = 500f;
 
@@ -65,14 +73,19 @@ public class TankController : MonoBehaviour
     public Animator animatorChasisLeft;
     public Animator animatorChasisRight;
 
-
+    // public float strength = 300f; // health analog
     public float standardSpeed = 6f;
     public float afteburnerSpeed = 12f;
+    public bool afteburner = false;
 
     public GameObject mainGun;
     public GameObject pairedMgun;
     public GameObject courseMgun;
     public GameObject currentWeapon;
+    public GameObject turret;
+    public Rigidbody turretRigidbody;
+    public Collider turretCollider;
+    public Transform boardingPlace;
 
     public GameObject rig;
     public GameObject aimTargetCursor;
@@ -83,6 +96,9 @@ public class TankController : MonoBehaviour
     private LineDrawer lineDrawerNoContact;
     public SpriteRenderer aimCircle;
     public TextMeshProUGUI rangefinder;
+
+    public Image hitmarker;
+    public Image hitmarkerKill;
 
     void Start()
     {
@@ -105,6 +121,12 @@ public class TankController : MonoBehaviour
             firingAimDecrease -= 0.08f;
         else
             firingAimDecrease = 0f;
+
+        if (Time.time > reloadOver && mainGunOnReload)
+        {
+            mainGunLoaded = true;
+            mainGunOnReload = false;
+        }
 
         if (currentFuel <= 0f)
         {
@@ -155,149 +177,165 @@ public class TankController : MonoBehaviour
         if (firingAimDecrease > firingAimDecreaseMax)
             firingAimDecrease = firingAimDecreaseMax;
 
-        // Point-and-click Controls
-        if (Input.GetMouseButtonDown(1) && currentFuel > 0f && IsThisCurrentChar())
+        // Control commands
+        if (selection.selectedSprite.enabled || selection.currentSprite.enabled)
         {
-            if (getDriver() == null)
-                setDriver(getCrewmateWithLowestPriority());
-            if (getDriver() != null)
+            // Start reload
+            if (Input.GetKey(KeyCode.R))
             {
-                afteburner = false;
-                rightMouseButtonTaps++;
-                StartCoroutine(resetRMBTaps(0.5f));
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hit;
-
-                if (Physics.Raycast(ray, out hit, 100, whatCanBeClickedOn))
-                {
-                    audioSourceEngine.Stop();
-                    audioSourceEngine.PlayOneShot(engineUpSFX);
-                    animatorChasisLeft.SetBool("isMoving", true);
-                    animatorChasisRight.SetBool("isMoving", true);
-                    MoveToPoint(hit.point);
-                }
-            }
-        }
-        if (rightMouseButtonTaps >= 2)
-        {
-            afteburner = true;
-        }
-
-        // WASD Controls
-        if ((Input.GetKey(KeyCode.LeftControl) || UIController.isActiveManualControl) && IsThisCurrentChar())
-        {
-            if (Time.time > nextShoot)
-            {
-                cursorSwitcher.ChangeType("aim");
+                ReloadMainGun(true);
             }
 
-            agent.ResetPath();
-
-            if (getDriver() == null)
-                setDriver(getCrewmateWithLowestPriority());
-            if (getDriver() != null)
+            // Point-and-click Controls
+            if (Input.GetMouseButtonDown(1) && currentFuel > 0f && IsThisCurrentChar())
             {
-                // Calculate direction vector
-                float h = Input.GetAxis("Horizontal");
-                float v = Input.GetAxis("Vertical");
-                if (h != 0 && v < 0)
+                if (getDriver() == null)
+                    setDriver(getCrewmateWithLowestPriority());
+                if (getDriver() != null)
                 {
-                    h *= -1; // Imitate tank rotation on moving back
-                }
-                if (h != 0 || v == 0)
-                {
-                    animatorChasisLeft.SetFloat("Speed", h);
-                    animatorChasisRight.SetFloat("Speed", -h);
-                }
-                else
-                {
-                    animatorChasisLeft.SetFloat("Speed", v);
-                    animatorChasisRight.SetFloat("Speed", v);
-                }
-                if (h != 0 || v != 0)
-                {
-                    if (!audioSourceMove.isPlaying)
-                    {
-                        animatorChasisLeft.SetBool("isMoving", true);
-                        animatorChasisRight.SetBool("isMoving", true);
-                        audioSourceMove.PlayOneShot(moveSFX);
-                        audioSourceEngine.PlayOneShot(engineSFX);
-                    }
-                    currentFuel -= 0.04f;
-                }
-                else
-                {
-                    audioSourceMove.Stop();
-                    animatorChasisLeft.SetBool("isMoving", false);
-                    animatorChasisRight.SetBool("isMoving", false);
-                }
-
-                if (currentFuel > 0f)
-                {
-                    directionVector = transform.forward * v;
-                    directionVector.y = 0;
-                    transform.Rotate(0, h * roatationSpeed, 0, Space.Self);
-                    if (Vector3.ClampMagnitude(directionVector, 1).magnitude > 0)
-                    {
-                        if (rigidbody.velocity.magnitude == 0)
-                        {
-                            audioSourceEngine.Stop();
-                            audioSourceEngine.PlayOneShot(engineUpSFX);
-                            animatorChasisLeft.SetBool("isMoving", true);
-                            animatorChasisRight.SetBool("isMoving", true);
-                        }
-                        rigidbody.velocity = Vector3.ClampMagnitude(directionVector, 1) * speed * 1.5f;
-                        firingAimDecrease += 0.15f;
-                    }
-                    else
-                    {
-                        if (rigidbody.velocity.magnitude > 0)
-                        {
-                            animatorChasisLeft.SetBool("isMoving", false);
-                            animatorChasisRight.SetBool("isMoving", false);
-                            audioSourceEngine.Stop();
-                            audioSourceEngine.PlayOneShot(engineEndSFX);
-                        }
-                        rigidbody.velocity = Vector3.zero;
-                    }
-                }
-            }
-
-            if (getGunner() == null)
-                setGunner(getCrewmateWithLowestPriority());
-            if (getGunner() != null)
-            {
-                spreadSize = effectiveDistance - firingAimDecrease;
-
-                // if (selection.currentSprite.enabled && currentWeapon != null)
-                {
+                    afteburner = false;
+                    rightMouseButtonTaps++;
+                    StartCoroutine(resetRMBTaps(0.5f));
                     Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                     RaycastHit hit;
-                    if (Physics.Raycast(ray, out hit, 1000))
-                    {
-                        Rotate(hit.point);
-                        Aiming(hit.point, spreadSize, true);
-                    }
-                    else
-                    {
-                        HideWhiteLine();
-                        HideRedLine();
-                    }
 
-                    // Shoot
-                    if (Input.GetMouseButton(0) && !selectManager.IsMouseOverUI())
+                    if (Physics.Raycast(ray, out hit, 100, whatCanBeClickedOn))
                     {
-                        Shoot(spreadSize, true);
+                        audioSourceEngine.Stop();
+                        audioSourceEngine.PlayOneShot(engineUpSFX);
+                        animatorChasisLeft.SetBool("isMoving", true);
+                        animatorChasisRight.SetBool("isMoving", true);
+                        MoveToPoint(hit.point);
                     }
                 }
             }
-        }
-        else
-        {
-            audioSourceTurret.Stop();
-            HideWhiteLine();
-            HideRedLine();
-            rigidbody.velocity = Vector3.zero;
+            if (rightMouseButtonTaps >= 2)
+            {
+                afteburner = true;
+            }
+
+            // WASD Controls
+            if ((Input.GetKey(KeyCode.LeftControl) || UIController.isActiveManualControl) && IsThisCurrentChar())
+            {
+                if (Time.time > reloadOver)
+                {
+                    cursorSwitcher.ChangeType("aim");
+                }
+
+                agent.ResetPath();
+
+                if (getDriver() == null)
+                    setDriver(getCrewmateWithLowestPriority());
+                if (getDriver() != null)
+                {
+                    // Calculate direction vector
+                    float h = Input.GetAxis("Horizontal");
+                    float v = Input.GetAxis("Vertical");
+                    rotationVector = h;
+                    if (h != 0 && v < 0)
+                    {
+                        h *= -1; // Imitate tank rotation on moving back
+                    }
+                    if (h != 0 || v == 0)
+                    {
+                        animatorChasisLeft.SetFloat("Speed", h);
+                        animatorChasisRight.SetFloat("Speed", -h);
+                    }
+                    else
+                    {
+                        animatorChasisLeft.SetFloat("Speed", v);
+                        animatorChasisRight.SetFloat("Speed", v);
+                    }
+                    if (h != 0 || v != 0)
+                    {
+                        if (!audioSourceMove.isPlaying)
+                        {
+                            animatorChasisLeft.SetBool("isMoving", true);
+                            animatorChasisRight.SetBool("isMoving", true);
+                            audioSourceMove.PlayOneShot(moveSFX);
+                            audioSourceEngine.PlayOneShot(engineSFX);
+                        }
+                        currentFuel -= 0.04f;
+                    }
+                    else
+                    {
+                        audioSourceMove.Stop();
+                        animatorChasisLeft.SetBool("isMoving", false);
+                        animatorChasisRight.SetBool("isMoving", false);
+                    }
+
+                    if (currentFuel > 0f)
+                    {
+                        directionVector = transform.forward * v;
+                        directionVector.y = 0;
+                        transform.Rotate(0, h * roatationSpeed, 0, Space.Self);
+                        if (Vector3.ClampMagnitude(directionVector, 1).magnitude > 0)
+                        {
+                            if (rigidbody.velocity.magnitude == 0)
+                            {
+                                audioSourceEngine.Stop();
+                                audioSourceEngine.PlayOneShot(engineUpSFX);
+                                animatorChasisLeft.SetBool("isMoving", true);
+                                animatorChasisRight.SetBool("isMoving", true);
+                            }
+                            rigidbody.velocity = Vector3.ClampMagnitude(directionVector, 1) * speed * 1.5f;
+                            firingAimDecrease += 0.15f;
+                        }
+                        else
+                        {
+                            if (rigidbody.velocity.magnitude > 0)
+                            {
+                                animatorChasisLeft.SetBool("isMoving", false);
+                                animatorChasisRight.SetBool("isMoving", false);
+                                audioSourceEngine.Stop();
+                                audioSourceEngine.PlayOneShot(engineEndSFX);
+                            }
+                            rigidbody.velocity = Vector3.zero;
+                        }
+                    }
+                }
+
+                if (getGunner() == null)
+                    setGunner(getCrewmateWithLowestPriority());
+                if (getGunner() != null)
+                {
+                    spreadSize = effectiveDistance - firingAimDecrease;
+
+                    // if (selection.currentSprite.enabled && currentWeapon != null)
+                    {
+                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                        RaycastHit hit;
+                        if (Physics.Raycast(ray, out hit, 1000))
+                        {
+                            Rotate(hit.point);
+                            Aiming(hit.point, spreadSize, true);
+                        }
+                        else
+                        {
+                            HideWhiteLine();
+                            HideRedLine();
+                        }
+
+                        // Shoot
+                        if (Input.GetMouseButton(0) && !selectManager.IsMouseOverUI())
+                        {
+                            ShootMainGun(spreadSize, true);
+                        }
+                    }
+                }
+                else
+                {
+                    HideWhiteLine();
+                    HideRedLine();
+                }
+            }
+            else
+            {
+                audioSourceTurret.Stop();
+                HideWhiteLine();
+                HideRedLine();
+                rigidbody.velocity = Vector3.zero;
+            }
         }
     }
 
@@ -347,7 +385,7 @@ public class TankController : MonoBehaviour
         var result = Vector3.Lerp(rig.transform.position, aimTargetCursor.transform.position, turretRoatationSpeed);
         if ((result - rig.transform.position).magnitude > turretRoatationThreshold)
         {
-            if (!audioSourceTurret.isPlaying)
+            if (!audioSourceTurret.isPlaying && getGunner() != null)
                 audioSourceTurret.PlayOneShot(turretSFX);
         }
         else
@@ -391,26 +429,16 @@ public class TankController : MonoBehaviour
         }
     }
 
-    public bool Shoot(float spreadSize, bool manualControl)
+    public bool ShootMainGun(float spreadSize, bool manualControl)
     {
         // makingNoise = true;
         // makingNoiseTime = Time.time + makingNoiseCooldown;
 
         bool thereWasShot = false;
-        if (Time.time > nextShoot) //  && selection.currentWeapon.currentAmmo > 0
+        if (mainGunLoaded)
         {
             thereWasShot = true;
-            /*
-            animator.SetBool("Fire", true);
-            selection.currentWeapon.currentAmmo--;
-            
-            if (IsThisCurrentChar())
-            {
-                UIController.ammoCount.text = selection.currentWeapon.currentAmmo + "/" + selection.currentWeapon.magSize;
-                if (inventory.activeSelf)
-                    inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
-            }
-            */
+
             if (manualControl)
             {
                 cursorSwitcher.ChangeType("fire");
@@ -418,8 +446,7 @@ public class TankController : MonoBehaviour
             if (gunAnimator != null)
                 gunAnimator.SetTrigger("Fire");
 
-            nextShoot = Time.time + 1f / fireRate;
-            // firingAimDecrease += selection.currentWeapon.AimDecrease;
+            firingAimDecrease += mainGunAimDecrease;
             audioSourceShoot.PlayOneShot(shootSFX);
             muzzleFlash.Play();
             ParticleSystem flash = Instantiate(muzzleFlash, currentWeapon.transform.position, currentWeapon.transform.rotation);
@@ -429,15 +456,182 @@ public class TankController : MonoBehaviour
             Ray shootRay = new Ray(currentWeapon.transform.position, Quaternion.Euler(0, Random.Range(-spread, spread), Random.Range(-spread, spread)) * currentWeapon.transform.forward);
             MissaleTracer currentBulletTracer = Instantiate(missaleTracer, currentWeapon.transform.position, Quaternion.LookRotation(shootRay.direction));
             currentBulletTracer.selfRigidbody.AddForce(shootRay.direction.normalized * 100f, ForceMode.Impulse);
-            /*
-            currentBulletTracer.damage = selection.currentWeapon.damage;
-            currentBulletTracer.distanceKoef = selection.currentWeapon.distanceKoef;
-            currentBulletTracer.startPoint = currentWeapon.transform.position;
             currentBulletTracer.currentPlayer = selection.player;
             currentBulletTracer.manualControl = manualControl;
-            */
+            mainGunLoaded = false;
+            ReloadMainGun(manualControl);
         }
         return thereWasShot;
+    }
+
+    public void ReloadMainGun(bool manualControl)
+    {
+        if (getCharger() == null)
+            setCharger(getCrewmateWithLowestPriority());
+        if (getCharger() != null)
+        {
+            bool haveAmmo = false;
+            // Take ammo from inventory and load it to the gun
+            for (int i = 0; i < selection.inventory_items.Count; i++)
+            {
+                if (selection.inventory_items[i].type == mainGunAmmoType)
+                {
+                    if (selection.inventory_items[i].IsStackable)
+                    {
+                        if (selection.inventory_items[i].currentAmount == 1)
+                        {
+                            selection.inventory_items.RemoveAt(i);
+                            haveAmmo = true;
+                            break;
+                        }
+                        else
+                        {
+                            selection.inventory_items[i].currentAmount--;
+                            haveAmmo = true;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        selection.inventory_items.RemoveAt(i);
+                        haveAmmo = true;
+                        break;
+                    }
+                }
+            }
+
+            if (haveAmmo)
+            {
+                if (IsThisCurrentChar())
+                {
+                    if (inventory.activeSelf)
+                        inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
+                }
+                if (manualControl)
+                {
+                    cursorSwitcher.ChangeType("reload");
+                }
+                mainGunOnReload = true;
+                animator.SetTrigger("Reload");
+                reloadOver = Time.time + mainGunReloadTime;
+                audioSourceShoot.PlayOneShot(reloadSFX);
+            }
+        }
+    }
+
+    public float CalculateDamage(GameObject collision, float damage, float distanceKoef, float distance)
+    {
+        float damageKoef = 1f;
+        if (new[] { "Chasis", "Wheel", "Track" }.Any(c => collision.gameObject.name.Contains(c)))
+        {
+            damageKoef = 0.5f;
+        }
+        else if (new[] { "Turret", "Mantlet", "Gun" }.Any(c => collision.gameObject.name.Contains(c)))
+        {
+            damageKoef = 0.9f;
+        }
+        else if (new[] { "Panzer_VI_E" }.Any(c => collision.gameObject.name.Contains(c)))
+        {
+            damageKoef = 1f;
+        }
+
+        var currentDamage = damage * (1 + Mathf.Pow(distanceKoef, distance)) * damageKoef;
+        return currentDamage;
+    }
+
+    public void ReceiveDamage(int currentPlayer, GameObject collision, Collision contactPoint, float currentDamage, bool manualControl)
+    {
+        SelectableCharacter target = selection;
+        Image hitmarkerToShow;
+
+        if (target.player != currentPlayer)
+        {
+            bool isAlreadyDead = target.health <= 0;
+
+            target.health -= currentDamage;
+            //Debug.Log("Damage: " + damage * (1 + Mathf.Pow(distanceKoef, (collision.contacts[0].point - startPoint).magnitude)) * damageKoef + "; Koef: " + damageKoef);
+            // Debug.Log("Target health: " + target.health);
+
+            if (!isAlreadyDead)
+            {
+
+                if (target.health <= 0)
+                {
+                    hitmarkerToShow = hitmarkerKill;
+                    Die();
+                }
+                else
+                {
+                    hitmarkerToShow = hitmarker;
+                    animator.SetTrigger("Hit");
+                }
+
+                if (manualControl)
+                {
+                    var hitmarkerTmp = Instantiate(hitmarkerToShow, Input.mousePosition, Quaternion.LookRotation(Vector3.forward));
+                    hitmarkerTmp.transform.SetParent(canvas);
+                    hitmarkerTmp.gameObject.layer = 0;
+                    Destroy(hitmarkerTmp, 0.3f);
+                }
+            }
+        }
+    }
+
+    public void Die()
+    {
+        HideWhiteLine();
+        HideRedLine();
+
+        var armyCount = selectManager.selectedArmy.Count;
+        var isThisCurrentChar = IsThisCurrentChar();
+        selectManager.selectableChars.Remove(selection);
+        if (selection.player == selectManager.player)
+            selectManager.selectedArmy.Remove(selection);
+
+        if (selection.selectedSprite.enabled || selection.currentSprite.enabled)
+        {
+            if (isThisCurrentChar)
+            {
+                if (armyCount > 1)
+                {
+                    selectManager.UnitInfoGUIOn();
+                }
+                else
+                {
+                    selectManager.UnitInfoGUIOff();
+                }
+            }
+        }
+
+        selection.TurnOffAll();
+        agent.ResetPath();
+        /*
+        animator.SetTrigger("Death");
+        foreach (Rigidbody rigidbody in rigidbodies)
+        {
+            if (rigidbody != null)
+            {
+                rigidbody.isKinematic = false;
+            }
+        }
+        foreach (Collider collider in colliders)
+        {
+            if (collider != null)
+            {
+                if (collider.gameObject != animator.gameObject)
+                    collider.enabled = true;
+                else
+                    collider.enabled = false;
+            }
+        }
+        */
+        turret.transform.parent = null;
+        turretCollider.enabled = true;
+        turretRigidbody.isKinematic = false;
+        turretRigidbody.AddForce(new Vector3(Random.Range(0.3f, 1.7f), Random.Range(1f, 2.4f), Random.Range(0.3f, 1.7f)), ForceMode.Impulse);
+
+        animator.enabled = false;
+        enabled = false;
     }
 
     public IEnumerator resetRMBTaps(float timeToWait)
@@ -545,15 +739,50 @@ public class TankController : MonoBehaviour
     public PlayerController getCrewmateWithLowestPriority()
     {
         PlayerController soldier = getCommander();
+        setCommander(null);
         if (soldier != null)
             return soldier;
+
         soldier = getGunner();
+        setGunner(null);
         if (soldier != null)
             return soldier;
-        soldier = getDriver();
-        if (soldier != null)
-            return soldier;
-        soldier = getCharger();
-        return soldier;
+
+        if (!mainGunOnReload)
+        {
+            soldier = getCharger();
+            setCharger(null);
+            if (soldier != null)
+                return soldier;
+        }
+
+        if (directionVector.magnitude == 0 && rotationVector == 0 && agent.remainingDistance == 0)
+        {
+            soldier = getDriver();
+            setDriver(null);
+            if (soldier != null)
+                return soldier;
+        }
+        return null;
+    }
+
+    public int getFreeCrewRole()
+    {
+        for (int i = 0; i < crewAmount; i++)
+        {
+            if (crew[i] == null)
+                return i;
+        }
+        return -1;
+    }
+
+    public PlayerController getAnyCrewmate()
+    {
+        for (int i = 0; i < crewAmount; i++)
+        {
+            if (crew[i] != null)
+                return crew[i];
+        }
+        return null;
     }
 }

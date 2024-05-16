@@ -102,6 +102,12 @@ public class PlayerController : MonoBehaviour
 
     public int rightMouseButtonTaps = 0;
 
+    public TankController vehicleWantToBoardOn = null;
+    private float boardingDistance = 5f;
+
+    public Ray ray;
+    public RaycastHit hit;
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -267,7 +273,7 @@ public class PlayerController : MonoBehaviour
             firingAimDecrease = firingAimDecreaseMax;
 
         // Control commands
-        if ((selection.selectedSprite.enabled || selection.currentSprite.enabled))
+        if (selection.selectedSprite.enabled || selection.currentSprite.enabled)
         {
             // Start reload
             if (Input.GetKey(KeyCode.R))
@@ -291,11 +297,11 @@ public class PlayerController : MonoBehaviour
             // Point-and-click Controls
             if (Input.GetMouseButtonDown(1) && !UIController.isActiveAttack && !UIController.isActiveRotate)
             {
+                vehicleWantToBoardOn = null;
                 isRunning = false;
                 rightMouseButtonTaps++;
                 StartCoroutine(resetRMBTaps(0.5f));
-                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                RaycastHit hit;
+                ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
                 if (Physics.Raycast(ray, out hit, 100, whatCanBeClickedOn))
                 {
@@ -310,6 +316,7 @@ public class PlayerController : MonoBehaviour
             // WASD Controls
             if ((Input.GetKey(KeyCode.LeftControl) || UIController.isActiveManualControl) && IsThisCurrentChar() && !UIController.isActiveAttack && !UIController.isActiveRotate)
             {
+                vehicleWantToBoardOn = null;
                 if (Time.time > nextShoot && animator.GetBool("ReloadOver"))
                 {
                     cursorSwitcher.ChangeType("aim");
@@ -357,7 +364,6 @@ public class PlayerController : MonoBehaviour
                 }
 
                 // Stop moving
-
                 if (audioSourceMove.isPlaying && rigidbody.velocity == Vector3.zero)
                 {
                     audioSourceMove.Stop();
@@ -368,8 +374,7 @@ public class PlayerController : MonoBehaviour
                 // Use grenade
                 if (selection.currentGrenade != null)
                 {
-                    Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                    RaycastHit hit;
+                    ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                     // Grenade throw aiming
                     if (Physics.Raycast(ray, out hit, 1000))
                     {
@@ -415,12 +420,11 @@ public class PlayerController : MonoBehaviour
                     lineRenderer.enabled = false;
                     grenadeTrajectorySphere.SetActive(false);
 
-                    spreadSize = (effectiveDistance / currentSpread - firingAimDecrease * currentSpread);
+                    spreadSize = effectiveDistance / currentSpread - firingAimDecrease * currentSpread;
 
                     if (selection.currentSprite.enabled && selection.currentWeapon != null) // Disable it and have FUN!!!
                     {
-                        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-                        RaycastHit hit;
+                        ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                         if (Physics.Raycast(ray, out hit, 1000))
                         {
                             Aiming(hit.point, spreadSize, true);
@@ -457,8 +461,60 @@ public class PlayerController : MonoBehaviour
             {
                 TurnOffFiring();
             }
+
+            ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out hit, 100))
+            {
+                TankController tank = hit.collider.GetComponent<TankController>();
+                if (tank != null)
+                {
+                    var crewmate = tank.getAnyCrewmate();
+                    if (tank.getFreeCrewRole() >= 0)
+                    {
+                        if (crewmate == null)
+                        {
+                            wantToBoard(tank);
+                        }
+                        else if (crewmate != null)
+                        {
+                            if (crewmate.selection.player == selection.player)
+                            {
+                                wantToBoard(tank);
+                            }
+                        }
+                    }
+                } 
+            }
+
+            if (vehicleWantToBoardOn != null)
+            {
+                if (Vector3.Distance(transform.position, vehicleWantToBoardOn.transform.position) <= boardingDistance)
+                    boardOnVehicle();
+            }
         }
     }
+
+    public void wantToBoard(TankController tank)
+    {
+        cursorSwitcher.ChangeType("board");
+
+        if (Input.GetMouseButton(1))
+        {
+            vehicleWantToBoardOn = tank;
+            MoveToPoint(vehicleWantToBoardOn.boardingPlace.position);
+        }
+    }
+
+    public void boardOnVehicle()
+    {
+        int freeRole = vehicleWantToBoardOn.getFreeCrewRole();
+        vehicleWantToBoardOn.crew[freeRole] = this;
+        vehicleWantToBoardOn.selection.player = selection.player;
+        vehicleWantToBoardOn = null;
+        gameObject.SetActive(false);
+    }
+
     public void MoveToPoint(Vector3 directionVector)
     {
         if (selectManager.selectedArmy.Count > 1 && selection.player == selectManager.player)

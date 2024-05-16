@@ -4,12 +4,7 @@ using UnityEngine.UI;
 public class MissaleTracer : MonoBehaviour
 {
     public float tracerLife = 3f;
-    public float damage;
-    public float distanceKoef;
     public GameObject missaleHole;
-    public Vector3 startPoint;
-    public Image hitmarker;
-    public Image hitmarkerKill;
     public Rigidbody selfRigidbody;
     public LineRenderer lineRenderer;
     public Collider selfCollider;
@@ -42,10 +37,17 @@ public class MissaleTracer : MonoBehaviour
                 {
                     var distanceKoef = 1 / Mathf.Clamp((playerController.transform.position - transform.position).magnitude, 0.2f, 100f) - 1;
                     var currentDamage = playerController.CalculateDamage(overlappedColliders[i].gameObject, inventoryItem.damage, distanceKoef, 1f);
-                    // var currentDamage = inventoryItem.damage * damageKoef * distanceKoef;
                     playerController.ReceiveDamage(currentPlayer, overlappedColliders[i].gameObject, null, currentDamage, manualControl);
-
                 }
+
+                TankController tankController = overlappedColliders[i].gameObject.GetComponentInParent<TankController>();
+                if (tankController != null)
+                {
+                    var distanceKoef = 1 / Mathf.Clamp((tankController.transform.position - transform.position).magnitude, 0.2f, 100f) - 1;
+                    var currentDamage = tankController.CalculateDamage(overlappedColliders[i].gameObject, inventoryItem.damage, distanceKoef, 1f);
+                    tankController.ReceiveDamage(currentPlayer, overlappedColliders[i].gameObject, null, currentDamage, manualControl);
+                }
+
                 Rigidbody rigidbodyOverlaped = overlappedColliders[i].attachedRigidbody;
                 if (rigidbodyOverlaped != null)
                 {

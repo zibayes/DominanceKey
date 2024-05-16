@@ -104,7 +104,6 @@ public class SelectableCharacter : MonoBehaviour {
         }
     }
 
-    //Turns off the sprite renderer
     public void TurnOffSelector()
     {
         selectedSprite.enabled = false;
@@ -112,7 +111,6 @@ public class SelectableCharacter : MonoBehaviour {
         currentSprite.enabled = false;
     }
 
-    //Turns on the sprite renderer
     public void TurnOnSelector()
     {
         selectedSprite.enabled = true;

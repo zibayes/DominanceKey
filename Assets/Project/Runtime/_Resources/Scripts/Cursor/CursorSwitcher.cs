@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 
 namespace VariableCode.Cursor
 {
@@ -22,6 +21,8 @@ namespace VariableCode.Cursor
                 cursorId = 4;
             else if (name == "rotate")
                 cursorId = 5;
+            else if (name == "board")
+                cursorId = 6;
             if (current.objectIndex != cursorId)
             {
                 current = cursors[cursorId];

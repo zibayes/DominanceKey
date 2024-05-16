@@ -126,19 +126,21 @@ public class SelectManager : MonoBehaviour
             if (selectedArmy.Count == 1 && selectedArmy[0].tankController != null)
             {
                 var tankController = selectedArmy[0].tankController;
-                for (int i = 0; i <= squadIcons.Count - 1; i++)
+                int indexOffset = 0;
+                for (int i = 0; i < squadIcons.Count; i++)
                 {
-                    if (i < tankController.crewAmount && tankController.crew[i] != null)
+                    squadIcons[i].gameObject.SetActive(false);
+                    if (i < tankController.crewAmount)
                     {
-                        squadIcons[i].gameObject.SetActive(true);
-                        if (i < crewRoles.Count)
+                        if (tankController.crew[i] == null)
+                            indexOffset += 1;
+                        if (i < tankController.crewAmount && tankController.crew[i] != null)
                         {
-                            crewRoles[i].gameObject.SetActive(true);
+                            squadIcons[i - indexOffset].gameObject.SetActive(true);
+                            squadIcons[i - indexOffset].sprite = infantryIcon;
+                            crewRoles[i - indexOffset].gameObject.SetActive(true);
+                            crewRoles[i - indexOffset].sprite = getRoleIcon(i);
                         }
-                    }
-                    else
-                    {
-                        squadIcons[i].gameObject.SetActive(false);
                     }
                 }
             }
@@ -371,21 +373,51 @@ public class SelectManager : MonoBehaviour
 
     
 
-public void ChoseSquadSoldier(int index)
+    public void ChoseSquadSoldier(int index)
     {
-        for (int i = selectedArmy.Count - 1; i >= 0; i--)
+        if (selectedArmy.Count == 1 && selectedArmy[0].tankController != null)
         {
-            if (i != index)
+            var tankController = selectedArmy[0].tankController;
+            for (int i = tankController.crewAmount - 1; i >= 0; i--)
             {
-                selectedArmy[i].TurnOffSelector();
-                selectedArmy.Remove(selectedArmy[i]);
-            }
-            else
-            {
-                selectedArmy[i].TurnOnCurrent();
+                if (i <= index)
+                {
+                    PlayerController soldier = tankController.crew[i];
+                    soldier.gameObject.SetActive(true);
+                    soldier.transform.position = tankController.boardingPlace.position;
+                    tankController.crew[i] = null;
+                }
             }
         }
-        UnitInfoGUIOn();
+        else
+        {
+            for (int i = selectedArmy.Count - 1; i >= 0; i--)
+            {
+                if (i != index)
+                {
+                    selectedArmy[i].TurnOffSelector();
+                    selectedArmy.Remove(selectedArmy[i]);
+                }
+                else
+                {
+                    selectedArmy[i].TurnOnCurrent();
+                }
+            }
+            UnitInfoGUIOn();
+        }
         toolTip.SetActive(false);
+    }
+
+    public Sprite getRoleIcon(int index)
+    {
+        if (index == 0)
+            return driver;
+        if (index == 1)
+            return gunner;
+        if (index == 2)
+            return charger;
+        if (index == 3)
+            return commander;
+        return null;
     }
 }

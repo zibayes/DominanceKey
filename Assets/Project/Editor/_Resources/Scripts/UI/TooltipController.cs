@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,6 +6,8 @@ public class TooltipController : MonoBehaviour, IPointerEnterHandler, IPointerEx
 {
     public SelectManager selectManager;
     public GameObject toolTip;
+    public TextMeshProUGUI TooltipName;
+    public TextMeshProUGUI TooltipSpecialization;
     public int index;
 
     void Awake()
@@ -18,8 +18,17 @@ public class TooltipController : MonoBehaviour, IPointerEnterHandler, IPointerEx
     public void OnPointerEnter(PointerEventData eventData)
     {
         toolTip.SetActive(true);
-        GameObject.Find("TooltipName").GetComponent<TextMeshProUGUI>().text = selectManager.selectedArmy[index].personName;
-        GameObject.Find("TooltipSpecialization").GetComponent<TextMeshProUGUI>().text = selectManager.selectedArmy[index].specialization;
+        
+        if (selectManager.selectedArmy.Count == 1 && selectManager.selectedArmy[0].tankController != null)
+        {
+            TooltipName.text = selectManager.selectedArmy[0].tankController.crew[index].selection.personName;
+            TooltipSpecialization.text = selectManager.selectedArmy[0].tankController.crew[index].selection.specialization;
+        }
+        else
+        {
+            TooltipName.text = selectManager.selectedArmy[index].personName;
+            TooltipSpecialization.text = selectManager.selectedArmy[index].specialization;
+        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
