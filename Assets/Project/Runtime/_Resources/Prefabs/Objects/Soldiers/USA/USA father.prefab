@@ -57,6 +57,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2383626859954355609, guid: 0babd07efb8952c48b9dc4be987584a1, type: 3}
+      propertyPath: portrait
+      value: 
+      objectReference: {fileID: 21300000, guid: 4405f2bb7ff41984380491973ad39edd, type: 3}
+    - target: {fileID: 2383626859954355609, guid: 0babd07efb8952c48b9dc4be987584a1, type: 3}
       propertyPath: nationality
       value: american
       objectReference: {fileID: 0}

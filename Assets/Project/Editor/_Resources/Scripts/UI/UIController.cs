@@ -286,36 +286,39 @@ public class UIController : MonoBehaviour
     {
         if (selectManager.selectedArmy.Any())
         {
-            if (selectManager.selectedArmy[0].playerController.attackType == "open")
+            if (selectManager.selectedArmy[0].playerController != null)
             {
-                fireAIIcon.sprite = fireAIIconActive;
-            }
-            else
-            {
-                fireAIIcon.sprite = fireAIIconInactive;
-            }
+                if (selectManager.selectedArmy[0].playerController.attackType == "open")
+                {
+                    fireAIIcon.sprite = fireAIIconActive;
+                }
+                else
+                {
+                    fireAIIcon.sprite = fireAIIconInactive;
+                }
 
-            if (selectManager.selectedArmy[0].playerController.movementType == "free")
-            {
-                moveAIIcon.sprite = moveAIIconActive;
-            }
-            else
-            {
-                moveAIIcon.sprite = moveAIIconInactive;
-            }
+                if (selectManager.selectedArmy[0].playerController.movementType == "free")
+                {
+                    moveAIIcon.sprite = moveAIIconActive;
+                }
+                else
+                {
+                    moveAIIcon.sprite = moveAIIconInactive;
+                }
 
-            var animator = selectManager.selectedArmy[0].playerController.animator;
-            if (!animator.GetBool("Sit") && !animator.GetBool("Lie"))
-            {
-                poseIcon.sprite = standPose;
-            }
-            else if (animator.GetBool("Sit") && !animator.GetBool("Lie"))
-            {
-                poseIcon.sprite = sitPose;
-            }
-            else if (!animator.GetBool("Sit") && animator.GetBool("Lie"))
-            {
-                poseIcon.sprite = liePose;
+                var animator = selectManager.selectedArmy[0].playerController.animator;
+                if (!animator.GetBool("Sit") && !animator.GetBool("Lie"))
+                {
+                    poseIcon.sprite = standPose;
+                }
+                else if (animator.GetBool("Sit") && !animator.GetBool("Lie"))
+                {
+                    poseIcon.sprite = sitPose;
+                }
+                else if (!animator.GetBool("Sit") && animator.GetBool("Lie"))
+                {
+                    poseIcon.sprite = liePose;
+                }
             }
         }
     }

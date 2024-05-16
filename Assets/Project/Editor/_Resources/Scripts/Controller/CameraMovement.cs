@@ -58,7 +58,7 @@ public class CameraMovement : MonoBehaviour
         transform.Translate(new Vector3(camPos.x, camPos.y, camPos.z));
         transform.position = new Vector3(Mathf.Clamp(transform.position.x, -mapBorderX, mapBorderX), yCoord, Mathf.Clamp(transform.position.z, -mapBorderZ, mapBorderZ));
 
-        if (Input.GetKey(KeyCode.LeftControl) && selectManager.selectedArmy.Any())
+        if ((Input.GetKey(KeyCode.LeftControl) || selectManager.uiController.isActiveManualControl) && selectManager.selectedArmy.Any())
         {
             float h = Input.GetAxis("Horizontal");
             float v = Input.GetAxis("Vertical");

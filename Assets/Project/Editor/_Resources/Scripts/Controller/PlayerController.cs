@@ -158,20 +158,23 @@ public class PlayerController : MonoBehaviour
             {
                 if (Vector3.Distance(character.transform.position, transform.position) <= noiseDetectionRaius)
                 {
-                    if (character.playerController.makingNoise)
+                    if (character.playerController != null)
                     {
-                        if (noiseDetectionTarget != null)
+                        if (character.playerController.makingNoise)
                         {
-                            if (Vector3.Distance(noiseDetectionTarget.transform.position, transform.position) < Vector3.Distance(character.transform.position, transform.position))
+                            if (noiseDetectionTarget != null)
+                            {
+                                if (Vector3.Distance(noiseDetectionTarget.transform.position, transform.position) < Vector3.Distance(character.transform.position, transform.position))
+                                {
+                                    noiseDetectionTarget = character.playerController;
+                                    noiseDetectionTime = noiseDetectionCooldown + Time.time;
+                                }
+                            }
+                            else
                             {
                                 noiseDetectionTarget = character.playerController;
                                 noiseDetectionTime = noiseDetectionCooldown + Time.time;
                             }
-                        }
-                        else
-                        {
-                            noiseDetectionTarget = character.playerController;
-                            noiseDetectionTime = noiseDetectionCooldown + Time.time;
                         }
                     }
                 }

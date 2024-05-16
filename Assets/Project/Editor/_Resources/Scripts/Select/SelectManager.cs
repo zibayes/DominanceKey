@@ -21,11 +21,29 @@ public class SelectManager : MonoBehaviour
     public float selectUnderMouseTimer = 0.1f;
     private float selectTimer = 0f;
 
-    public List<GameObject> squadIcons = new List<GameObject>();
+    public List<Image> squadIcons = new List<Image>();
+    public List<Image> crewRoles = new List<Image>();
     public List<SelectableCharacter> selectableChars = new List<SelectableCharacter>();
     public List<SelectableCharacter> selectedArmy = new List<SelectableCharacter>();
 
+    public Sprite driver;
+    public Sprite gunner;
+    public Sprite charger;
+    public Sprite commander;
+
+    public Sprite infantryIcon;
+    public Sprite tankIcon;
+
+    public Image portrait;
+    public TextMeshProUGUI personName;
+    public TextMeshProUGUI specialization;
+    public Dropdown weaponSelect;
+    public Text ammoCount;
+    public Dropdown grenadeSelect;
+    public Text grenadesCount;
+
     public GameObject unitInfoGUI;
+    public GameObject panelCentral;
     public GameObject panelAction;
     public GameObject toolTip;
     public GameObject Inventory;
@@ -37,30 +55,29 @@ public class SelectManager : MonoBehaviour
 
     public int player = 0;
 
-    public bool formationDone = false;
-
     private void Awake() {
-        //This assumes that the manager is placed on the image used to select
         if (!SelectingBoxRect) {
             SelectingBoxRect = GetComponent<RectTransform>();
         }
 
-        //Searches for all of the objects with the selectable character script
-        //Then converts to list
         SelectableCharacter[] chars = FindObjectsOfType<SelectableCharacter>();
         for (int i = 0; i <= (chars.Length - 1); i++) {
             selectableChars.Add(chars[i]);
         }
 
-        unitInfoGUI.SetActive(false);
-        panelAction.SetActive(false);
-
-        GameObject squadPanel = GameObject.Find("SquadPanel");
-        for (int i = 0; i < squadPanel.transform.childCount; i++)
+        for (int i = 0; i < squadIcons.Count; i++)
         {
-            squadIcons.Add(squadPanel.transform.GetChild(i).gameObject);
-            squadIcons[i].SetActive(false);
+            var postfix = i == 0 ? "" : " (" + i + ")";
+            squadIcons[i] = GameObject.Find("SquadUnitIcon" + postfix).GetComponent<Image>();
+            if (i < crewRoles.Count)
+            {
+                crewRoles[i] = squadIcons[i].gameObject.transform.Find("CrewRole").GetComponent<Image>();
+            }
         }
+
+        unitInfoGUI.SetActive(false);
+        panelCentral.SetActive(false);
+        panelAction.SetActive(false);
     }
 
     void Update() {
@@ -104,34 +121,50 @@ public class SelectManager : MonoBehaviour
             SelectingBoxRect.sizeDelta = new Vector2(0, 0);
         }
 
-        for (int i = 0; i <= squadIcons.Count - 1; i++)
+        if (selectedArmy.Any())
         {
-            if (i < selectedArmy.Count)
+            if (selectedArmy.Count == 1 && selectedArmy[0].tankController != null)
             {
-                squadIcons[i].SetActive(true);
+                var tankController = selectedArmy[0].tankController;
+                for (int i = 0; i <= squadIcons.Count - 1; i++)
+                {
+                    if (i < tankController.crewAmount && tankController.crew[i] != null)
+                    {
+                        squadIcons[i].gameObject.SetActive(true);
+                        if (i < crewRoles.Count)
+                        {
+                            crewRoles[i].gameObject.SetActive(true);
+                        }
+                    }
+                    else
+                    {
+                        squadIcons[i].gameObject.SetActive(false);
+                    }
+                }
             }
             else
             {
-                squadIcons[i].SetActive(false);
+                for (int i = 0; i <= squadIcons.Count - 1; i++)
+                {
+                    if (i < selectedArmy.Count)
+                    {
+                        squadIcons[i].gameObject.SetActive(true);
+                        if (selectedArmy[i].playerController != null)
+                            squadIcons[i].sprite = infantryIcon;
+                        else if (selectedArmy[i].tankController != null)
+                            squadIcons[i].sprite = tankIcon;
+                        if (i < crewRoles.Count)
+                        {
+                            crewRoles[i].gameObject.SetActive(false);
+                        }
+                    }
+                    else
+                    {
+                        squadIcons[i].gameObject.SetActive(false);
+                    }
+                }
             }
         }
-
-        // Formation
-        /*
-        if (selectedArmy.Count > 1)
-        {
-            var startPos = selectedArmy[0].transform.position;
-            var unitWidth = 1.5f;
-            var unitDepth = 1.5f;
-            for (int i = 0; i < selectedArmy.Count; i++)
-            {
-                // selectedArmy[0].GetComponentInParent<PlayerController>().agent.ResetPath();
-                // selectedArmy[0].GetComponentInParent<PlayerController>().agent.SetDestination(center - new Vector3((i - selectedArmy.Count/2) * unitWidth, 0, 0));
-                selectedArmy[0].GetComponentInParent<PlayerController>().gameObject.transform.position = startPos + new Vector3(i * unitWidth, 0, 0);
-            }
-            formationDone = true;
-        }
-        */
     }
 
     //Resets what is currently being selected
@@ -252,68 +285,69 @@ public class SelectManager : MonoBehaviour
         uiController.isChoseAnotherUnit = true;
         unitInfoGUI.SetActive(true);
         panelAction.SetActive(true);
+        panelCentral.SetActive(true);
         uiController.SetCurrentValues();
         if (uiController.isActiveManualControl && !usedGrenade)
             uiController.ToggleManualControl();
         SelectableCharacter currentChar = selectedArmy[0];
         currentChar.TurnOnCurrent();
-        GameObject.Find("Portrait").GetComponent<RawImage>().texture = currentChar.portrait;
-        GameObject.Find("PersonName").GetComponent<TextMeshProUGUI>().text = currentChar.personName;
-        GameObject.Find("Specialization").GetComponent<TextMeshProUGUI>().text = currentChar.specialization;
+        portrait.sprite = currentChar.portrait;
+        personName.text = currentChar.personName;
+        specialization.text = currentChar.specialization;
 
-        GameObject.Find("WeaponSelect").GetComponent<Dropdown>().options.Clear();
+        weaponSelect.options.Clear();
         if (currentChar.currentWeapon != null)
         {
-            GameObject.Find("WeaponSelect").GetComponent<Dropdown>().captionImage.sprite = currentChar.currentWeapon.image;
-            GameObject.Find("WeaponSelect").GetComponent<Dropdown>().captionText.text = currentChar.currentWeapon.selectId + ". " + currentChar.currentWeapon.name;
-            GameObject.Find("AmmoCount").GetComponent<Text>().text = currentChar.currentWeapon.currentAmmo + "/" + currentChar.currentWeapon.magSize;
+            weaponSelect.captionImage.sprite = currentChar.currentWeapon.image;
+            weaponSelect.captionText.text = currentChar.currentWeapon.selectId + ". " + currentChar.currentWeapon.name;
+            ammoCount.text = currentChar.currentWeapon.currentAmmo + "/" + currentChar.currentWeapon.magSize;
         }
         else
         {
-            GameObject.Find("WeaponSelect").GetComponent<Dropdown>().captionImage.sprite = emptyImage;
-            GameObject.Find("WeaponSelect").GetComponent<Dropdown>().captionText.text = "";
-            GameObject.Find("AmmoCount").GetComponent<Text>().text = "";
+            weaponSelect.captionImage.sprite = emptyImage;
+            weaponSelect.captionText.text = "";
+            ammoCount.text = "";
         }
-        GameObject.Find("WeaponSelect").GetComponent<Dropdown>().options.Add(new Dropdown.OptionData("", emptyImage));
+        weaponSelect.options.Add(new Dropdown.OptionData("", emptyImage));
         for (int i = 0; i < currentChar.inventory_items.Count; i++)
         {
             if (currentChar.inventory_items[i].type == "weapon")
             {
-                currentChar.inventory_items[i].selectId = GameObject.Find("WeaponSelect").GetComponent<Dropdown>().options.Count;
-                GameObject.Find("WeaponSelect").GetComponent<Dropdown>().options.Add(new Dropdown.OptionData(currentChar.inventory_items[i].selectId + ". " + currentChar.inventory_items[i].name, currentChar.inventory_items[i].image));
+                currentChar.inventory_items[i].selectId = weaponSelect.options.Count;
+                weaponSelect.options.Add(new Dropdown.OptionData(currentChar.inventory_items[i].selectId + ". " + currentChar.inventory_items[i].name, currentChar.inventory_items[i].image));
                 if (currentChar.inventory_items[i] == currentChar.currentWeapon)
-                    GameObject.Find("WeaponSelect").GetComponent<Dropdown>().value = currentChar.inventory_items[i].selectId;
+                    weaponSelect.value = currentChar.inventory_items[i].selectId;
             }
         }
         if (currentChar.currentWeapon == null)
-            GameObject.Find("WeaponSelect").GetComponent<Dropdown>().value = 0;
+            weaponSelect.value = 0;
 
-        GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().options.Clear();
+        grenadeSelect.options.Clear();
         if (currentChar.currentGrenade != null)
         {
-            GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().captionImage.sprite = currentChar.currentGrenade.image;
-            GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().captionText.text = currentChar.currentGrenade.selectId + ". " + currentChar.currentGrenade.name;
-            GameObject.Find("GrenadesCount").GetComponent<Text>().text = currentChar.currentGrenade.currentAmmo + "/" + currentChar.currentGrenade.magSize;
+            grenadeSelect.captionImage.sprite = currentChar.currentGrenade.image;
+            grenadeSelect.captionText.text = currentChar.currentGrenade.selectId + ". " + currentChar.currentGrenade.name;
+            grenadesCount.text = currentChar.currentGrenade.currentAmmo + "/" + currentChar.currentGrenade.magSize;
         }
         else
         {
-            GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().captionImage.sprite = emptyImage;
-            GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().captionText.text = "";
-            GameObject.Find("GrenadesCount").GetComponent<Text>().text = "";
+            grenadeSelect.captionImage.sprite = emptyImage;
+            grenadeSelect.captionText.text = "";
+            grenadesCount.text = "";
         }
-        GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().options.Add(new Dropdown.OptionData("", emptyImage));
+        grenadeSelect.options.Add(new Dropdown.OptionData("", emptyImage));
         for (int i = 0; i < currentChar.inventory_items.Count; i++)
         {
             if (currentChar.inventory_items[i].type == "grenade")
             {
-                currentChar.inventory_items[i].selectId = GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().options.Count;
-                GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().options.Add(new Dropdown.OptionData(currentChar.inventory_items[i].selectId + ". " + currentChar.inventory_items[i].name, currentChar.inventory_items[i].image));
+                currentChar.inventory_items[i].selectId = grenadeSelect.options.Count;
+                grenadeSelect.options.Add(new Dropdown.OptionData(currentChar.inventory_items[i].selectId + ". " + currentChar.inventory_items[i].name, currentChar.inventory_items[i].image));
                 if (currentChar.inventory_items[i] == currentChar.currentGrenade)
-                    GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().value = currentChar.inventory_items[i].selectId;
+                    grenadeSelect.value = currentChar.inventory_items[i].selectId;
             }
         }
         if (currentChar.currentGrenade == null)
-            GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().value = 0;
+            grenadeSelect.value = 0;
 
         if (Inventory.activeSelf)
         {
@@ -326,6 +360,7 @@ public class SelectManager : MonoBehaviour
     {
         unitInfoGUI.SetActive(false);
         panelAction.SetActive(false);
+        panelCentral.SetActive(false);
         if (Inventory.activeSelf)
         {
             inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine());

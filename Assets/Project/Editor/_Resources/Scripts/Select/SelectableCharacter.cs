@@ -4,13 +4,14 @@ using VariableInventorySystem.Sample;
 
 public class SelectableCharacter : MonoBehaviour {
     public PlayerController playerController;
+    public TankController tankController;
     public Rigidbody selfRigidbody;
 
     public SpriteRenderer unselectedSprite;
     public SpriteRenderer selectedSprite;
     public SpriteRenderer currentSprite;
 
-    public Texture portrait;
+    public Sprite portrait;
     public string personName;
     public string nationality;
     public string specialization;
@@ -40,64 +41,67 @@ public class SelectableCharacter : MonoBehaviour {
         selectedSprite.enabled = false;
         currentSprite.enabled = false;
 
-        if (randomizeName)
-        {
-            if (nationality == "american")
-                personName = firstnamesUS[Random.Range(0, firstnamesUS.Length)] + " " + lastnamesUS[Random.Range(0, lastnamesUS.Length)];
-            if (nationality == "german")
-                personName = firstnamesGer[Random.Range(0, firstnamesGer.Length)] + " " + lastnamesGer[Random.Range(0, lastnamesGer.Length)];
-        }
-
         for (int i = 0; i < start_inventory_items.Count; i++)
         {
             inventory_items.Add(new ItemCellData(start_inventory_items[i]));
         }
 
-        // Fill weapon mag on start
-        for (int i = 0; i < inventory_items.Count; i++)
+        if (playerController != null)
         {
-            if (inventory_items[i].type == "weapon")
+            if (randomizeName)
             {
-                inventory_items[i].currentAmmo = inventory_items[i].magSize;
+                if (nationality == "american")
+                    personName = firstnamesUS[Random.Range(0, firstnamesUS.Length)] + " " + lastnamesUS[Random.Range(0, lastnamesUS.Length)];
+                if (nationality == "german")
+                    personName = firstnamesGer[Random.Range(0, firstnamesGer.Length)] + " " + lastnamesGer[Random.Range(0, lastnamesGer.Length)];
             }
-        }
 
-        if (player != playerController.selectManager.player)
-            unselectedSprite.enabled = false;
-        else
-            unselectedSprite.enabled = true;
-
-        foreach (Collider collider in playerController.colliders)
-            if (collider.gameObject != playerController.gameObject)
-                collider.enabled = true;
-            else
-                collider.enabled = false;
-
-        // Вставка оружия со старта - первое попавшееся!!!
-        for (int i = 0; i < inventory_items.Count; i++)
-        {
-            if (inventory_items[i].type == "weapon" && currentWeapon == null)
+            // Fill weapon mag on start
+            for (int i = 0; i < inventory_items.Count; i++)
             {
-                currentWeapon = inventory_items[i];
+                if (inventory_items[i].type == "weapon")
+                {
+                    inventory_items[i].currentAmmo = inventory_items[i].magSize;
+                }
+            }
 
-                var weaponHolder = playerController.weaponHolder;
-                if (weaponHolder.childCount > 0)
-                    Destroy(weaponHolder.GetChild(0).gameObject);
-                var currentModel = Instantiate(currentWeapon.model, weaponHolder.transform);
-                currentModel.transform.parent = weaponHolder.transform;
-                var collectable = currentModel.GetComponent<Collectable>();
-                playerController.SetWeapon();
-                collectable.collider.enabled = false;
-                collectable.rigidbody.isKinematic = true;
-                collectable.outline.enabled = false;
-                collectable.inventoryItem.enabled = false;
-                collectable.enabled = false;
-                break;
-            } 
-            // else if (inventory_items[i].type == "grenade" && currentWeapon == null)
+            if (player != playerController.selectManager.player)
+                unselectedSprite.enabled = false;
+            else
+                unselectedSprite.enabled = true;
+
+            foreach (Collider collider in playerController.colliders)
+                if (collider.gameObject != playerController.gameObject)
+                    collider.enabled = true;
+                else
+                    collider.enabled = false;
+
+            // Вставка оружия со старта - первое попавшееся!!!
+            for (int i = 0; i < inventory_items.Count; i++)
+            {
+                if (inventory_items[i].type == "weapon" && currentWeapon == null)
+                {
+                    currentWeapon = inventory_items[i];
+
+                    var weaponHolder = playerController.weaponHolder;
+                    if (weaponHolder.childCount > 0)
+                        Destroy(weaponHolder.GetChild(0).gameObject);
+                    var currentModel = Instantiate(currentWeapon.model, weaponHolder.transform);
+                    currentModel.transform.parent = weaponHolder.transform;
+                    var collectable = currentModel.GetComponent<Collectable>();
+                    playerController.SetWeapon();
+                    collectable.collider.enabled = false;
+                    collectable.rigidbody.isKinematic = true;
+                    collectable.outline.enabled = false;
+                    collectable.inventoryItem.enabled = false;
+                    collectable.enabled = false;
+                    break;
+                }
+                // else if (inventory_items[i].type == "grenade" && currentWeapon == null)
+            }
+
+            StartCoroutine(playerController.UIController.WeaponChanging(true, this, 0f));
         }
-
-        StartCoroutine(playerController.UIController.WeaponChanging(true, this, 0f));
     }
 
     //Turns off the sprite renderer

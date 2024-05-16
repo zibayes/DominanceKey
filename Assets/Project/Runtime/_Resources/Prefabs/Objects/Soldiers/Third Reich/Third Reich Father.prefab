@@ -808,6 +808,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2383626859954355609, guid: 0babd07efb8952c48b9dc4be987584a1, type: 3}
+      propertyPath: portrait
+      value: 
+      objectReference: {fileID: 21300000, guid: 61c3686fb5ab14542ac21cf8664d64d7, type: 3}
+    - target: {fileID: 2383626859954355609, guid: 0babd07efb8952c48b9dc4be987584a1, type: 3}
       propertyPath: nationality
       value: german
       objectReference: {fileID: 0}
