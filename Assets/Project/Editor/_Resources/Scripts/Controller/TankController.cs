@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -44,12 +45,13 @@ public class TankController : MonoBehaviour
     public float mainGunReloadTime = 2.4f;
     public string mainGunAmmoType;
 
-    public float maxFuel = 500f;
-    public float currentFuel = 500f;
+    // public float maxFuel = 500f; // now we using power in selection
+    // public float currentFuel = 500f;
 
     public int crewAmount = 4;
     public PlayerController[] crew;
 
+    public ParticleSystem blackSmoke;
     public ParticleSystem muzzleFlash;
     public MissaleTracer missaleTracer;
 
@@ -83,8 +85,6 @@ public class TankController : MonoBehaviour
     public GameObject courseMgun;
     public GameObject currentWeapon;
     public GameObject turret;
-    public Rigidbody turretRigidbody;
-    public Collider turretCollider;
     public Transform boardingPlace;
 
     public GameObject rig;
@@ -100,6 +100,10 @@ public class TankController : MonoBehaviour
     public Image hitmarker;
     public Image hitmarkerKill;
 
+    public List<Rigidbody> rigidbodies;
+    public List<Collider> colliders;
+    public Collider collider;
+
     void Start()
     {
         selectManager = GameObject.Find("SelectingBox").GetComponent<SelectManager>();
@@ -110,12 +114,18 @@ public class TankController : MonoBehaviour
         cameraRig = GameObject.Find("CameraRig").transform;
         cursorSwitcher = GameObject.Find("CursorManager").GetComponent<CursorSwitcher>();
         currentWeapon = mainGun;
+
         lineDrawer = new LineDrawer();
         lineDrawerNoContact = new LineDrawer();
+
         crew = new PlayerController[crewAmount];
+
+        rigidbodies = new List<Rigidbody>(GetComponentsInChildren<Rigidbody>());
+        colliders = new List<Collider>(GetComponentsInChildren<Collider>());
     }
     void Update()
     {
+        // Die();
         // Aim decrease decrement
         if (firingAimDecrease > 0)
             firingAimDecrease -= 0.08f;
@@ -128,10 +138,10 @@ public class TankController : MonoBehaviour
             mainGunOnReload = false;
         }
 
-        if (currentFuel <= 0f)
+        if (selection.power <= 0f)
         {
             agent.ResetPath();
-            currentFuel = 0f;
+            selection.power = 0f;
         }
 
         // Moving handlers
@@ -153,9 +163,9 @@ public class TankController : MonoBehaviour
             }
 
             if (afteburner)
-                currentFuel -= 0.08f;
+                selection.power -= 0.08f;
             else
-                currentFuel -= 0.04f;
+                selection.power -= 0.04f;
         }
         else
         {
@@ -187,7 +197,7 @@ public class TankController : MonoBehaviour
             }
 
             // Point-and-click Controls
-            if (Input.GetMouseButtonDown(1) && currentFuel > 0f && IsThisCurrentChar())
+            if (Input.GetMouseButtonDown(1) && selection.power > 0f && IsThisCurrentChar())
             {
                 if (getDriver() == null)
                     setDriver(getCrewmateWithLowestPriority());
@@ -255,7 +265,7 @@ public class TankController : MonoBehaviour
                             audioSourceMove.PlayOneShot(moveSFX);
                             audioSourceEngine.PlayOneShot(engineSFX);
                         }
-                        currentFuel -= 0.04f;
+                        selection.power -= 0.04f;
                     }
                     else
                     {
@@ -264,7 +274,7 @@ public class TankController : MonoBehaviour
                         animatorChasisRight.SetBool("isMoving", false);
                     }
 
-                    if (currentFuel > 0f)
+                    if (selection.power > 0f)
                     {
                         directionVector = transform.forward * v;
                         directionVector.y = 0;
@@ -447,7 +457,7 @@ public class TankController : MonoBehaviour
                 gunAnimator.SetTrigger("Fire");
 
             firingAimDecrease += mainGunAimDecrease;
-            audioSourceShoot.PlayOneShot(shootSFX);
+            audioSourceShoot.PlayOneShot(shootSFX); 
             muzzleFlash.Play();
             ParticleSystem flash = Instantiate(muzzleFlash, currentWeapon.transform.position, currentWeapon.transform.rotation);
             Destroy(flash, 1f);
@@ -605,15 +615,7 @@ public class TankController : MonoBehaviour
 
         selection.TurnOffAll();
         agent.ResetPath();
-        /*
-        animator.SetTrigger("Death");
-        foreach (Rigidbody rigidbody in rigidbodies)
-        {
-            if (rigidbody != null)
-            {
-                rigidbody.isKinematic = false;
-            }
-        }
+
         foreach (Collider collider in colliders)
         {
             if (collider != null)
@@ -624,12 +626,17 @@ public class TankController : MonoBehaviour
                     collider.enabled = false;
             }
         }
-        */
-        turret.transform.parent = null;
-        turretCollider.enabled = true;
-        turretRigidbody.isKinematic = false;
-        turretRigidbody.AddForce(new Vector3(Random.Range(0.3f, 1.7f), Random.Range(1f, 2.4f), Random.Range(0.3f, 1.7f)), ForceMode.Impulse);
 
+        setDriver(null);
+        setGunner(null);
+        setCharger(null);
+        setCommander(null);
+
+        blackSmoke.Play();
+        ParticleSystem flash = Instantiate(blackSmoke, transform.position + transform.up, Quaternion.LookRotation(transform.up));
+        turret.transform.parent = null;
+
+        selection.enabled = false;
         animator.enabled = false;
         enabled = false;
     }
@@ -679,7 +686,8 @@ public class TankController : MonoBehaviour
         PlayerController playerController = collision.gameObject.GetComponentInParent<PlayerController>();
         if (playerController != null)
         {
-            playerController.ReceiveDamage(player, collision.gameObject, collision, playerController.selection.maxHealth, Input.GetKey(KeyCode.LeftControl) || UIController.isActiveManualControl);
+            playerController.ReceiveDamage(player, collision.gameObject, collision, 
+                playerController.selection.maxHealth, (Input.GetKey(KeyCode.LeftControl) || UIController.isActiveManualControl) && IsThisCurrentChar());
         }
     }
 
@@ -784,5 +792,16 @@ public class TankController : MonoBehaviour
                 return crew[i];
         }
         return null;
+    }
+
+    public int countCrew()
+    {
+        int sum = 0;
+        for (int i = 0; i < crewAmount; i++)
+        {
+            if (crew[i] != null)
+                sum++;
+        }
+        return sum;
     }
 }

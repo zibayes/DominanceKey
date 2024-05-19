@@ -21,8 +21,19 @@ public class TooltipController : MonoBehaviour, IPointerEnterHandler, IPointerEx
         
         if (selectManager.selectedArmy.Count == 1 && selectManager.selectedArmy[0].tankController != null)
         {
-            TooltipName.text = selectManager.selectedArmy[0].tankController.crew[index].selection.personName;
-            TooltipSpecialization.text = selectManager.selectedArmy[0].tankController.crew[index].selection.specialization;
+            TankController tankController = selectManager.selectedArmy[0].tankController;
+            for (int i = 0; i < tankController.crewAmount; i++)
+            {
+                PlayerController soldier = tankController.crew[i];
+                if (soldier != null)
+                {
+                    if (soldier.placeInTank == index)
+                    {
+                        TooltipName.text = soldier.selection.personName;
+                        TooltipSpecialization.text = soldier.selection.specialization;
+                    }
+                }
+            }
         }
         else
         {

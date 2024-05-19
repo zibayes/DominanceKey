@@ -108,7 +108,7 @@ public class Collectable : MonoBehaviour
                 outline.OutlineColor = Color.red;
                 if (!IsMouseOverUI())
                     Destroy(currentToolTip);
-                if (!Input.GetKey(KeyCode.LeftControl) && !selectManager.uiController.isActiveManualControl && !selectManager.uiController.isActiveAttack && !selectManager.uiController.isActiveRotate)
+                if (!Input.GetKey(KeyCode.LeftControl) && !selectManager.uiController.isActiveManualControl && !selectManager.uiController.isActiveAttack && !selectManager.uiController.isActiveRotate && cursorSwitcher.current.objectIndex != 6)
                     cursorSwitcher.ChangeType("default");
                 if (Input.GetMouseButton(1))
                     wantToPickUp = false;

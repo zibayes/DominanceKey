@@ -104,6 +104,7 @@ public class PlayerController : MonoBehaviour
 
     public TankController vehicleWantToBoardOn = null;
     private float boardingDistance = 5f;
+    public int placeInTank;
 
     public Ray ray;
     public RaycastHit hit;
@@ -484,7 +485,12 @@ public class PlayerController : MonoBehaviour
                             }
                         }
                     }
-                } 
+                }
+                else
+                {
+                    if (cursorSwitcher.current.objectIndex == 6)
+                        cursorSwitcher.ChangeType("default");
+                }
             }
 
             if (vehicleWantToBoardOn != null)
@@ -497,7 +503,8 @@ public class PlayerController : MonoBehaviour
 
     public void wantToBoard(TankController tank)
     {
-        cursorSwitcher.ChangeType("board");
+        if (!(Input.GetKey(KeyCode.LeftControl) || UIController.isActiveManualControl) && IsThisCurrentChar())
+            cursorSwitcher.ChangeType("board");
 
         if (Input.GetMouseButton(1))
         {
@@ -508,10 +515,13 @@ public class PlayerController : MonoBehaviour
 
     public void boardOnVehicle()
     {
+        placeInTank = vehicleWantToBoardOn.countCrew();
         int freeRole = vehicleWantToBoardOn.getFreeCrewRole();
         vehicleWantToBoardOn.crew[freeRole] = this;
         vehicleWantToBoardOn.selection.player = selection.player;
         vehicleWantToBoardOn = null;
+        enabled = false;
+        selection.enabled = false;
         gameObject.SetActive(false);
     }
 

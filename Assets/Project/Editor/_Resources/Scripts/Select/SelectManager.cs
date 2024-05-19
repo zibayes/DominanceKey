@@ -126,21 +126,23 @@ public class SelectManager : MonoBehaviour
             if (selectedArmy.Count == 1 && selectedArmy[0].tankController != null)
             {
                 var tankController = selectedArmy[0].tankController;
-                int indexOffset = 0;
+                int index;
                 for (int i = 0; i < squadIcons.Count; i++)
                 {
-                    squadIcons[i].gameObject.SetActive(false);
                     if (i < tankController.crewAmount)
                     {
-                        if (tankController.crew[i] == null)
-                            indexOffset += 1;
                         if (i < tankController.crewAmount && tankController.crew[i] != null)
                         {
-                            squadIcons[i - indexOffset].gameObject.SetActive(true);
-                            squadIcons[i - indexOffset].sprite = infantryIcon;
-                            crewRoles[i - indexOffset].gameObject.SetActive(true);
-                            crewRoles[i - indexOffset].sprite = getRoleIcon(i);
+                            index = tankController.crew[i].placeInTank;
+                            squadIcons[index].gameObject.SetActive(true);
+                            squadIcons[index].sprite = infantryIcon;
+                            crewRoles[index].gameObject.SetActive(true);
+                            crewRoles[index].sprite = getRoleIcon(i);
                         }
+                    }
+                    if (i >= tankController.countCrew())
+                    {
+                        squadIcons[i].gameObject.SetActive(false);
                     }
                 }
             }
@@ -271,6 +273,19 @@ public class SelectManager : MonoBehaviour
                         selection.TurnOnSelector();
                     }
                 }
+                else
+                {
+                    TankController tankController = hit.transform.gameObject.GetComponentInParent<TankController>();
+                    if (tankController != null)
+                    {
+                        var selection = tankController.selection;
+                        if (selectableChars.Contains(selection) && !selectedArmy.Contains(selection) && selection.player == player)
+                        {
+                            selectedArmy.Add(selection);
+                            selection.TurnOnSelector();
+                        }
+                    }
+                }                
                 if (selectedArmy.Any())
                     selectedArmy[0].TurnOnCurrent();
             }
@@ -375,17 +390,27 @@ public class SelectManager : MonoBehaviour
 
     public void ChoseSquadSoldier(int index)
     {
+        // TODO: if (!(index == 2 && tankController.mainGunOnReload))
         if (selectedArmy.Count == 1 && selectedArmy[0].tankController != null)
         {
             var tankController = selectedArmy[0].tankController;
             for (int i = tankController.crewAmount - 1; i >= 0; i--)
             {
-                if (i <= index)
+                PlayerController soldier = tankController.crew[i];
+                if (soldier != null)
                 {
-                    PlayerController soldier = tankController.crew[i];
-                    soldier.gameObject.SetActive(true);
-                    soldier.transform.position = tankController.boardingPlace.position;
-                    tankController.crew[i] = null;
+                    if (index == soldier.placeInTank)
+                    {
+                        soldier.gameObject.SetActive(true);
+                        soldier.enabled = false;
+                        soldier.selection.enabled = false;
+                        soldier.transform.position = tankController.boardingPlace.position;
+                        tankController.crew[i] = null;
+                    }
+                    else if (soldier.placeInTank > index)
+                    {
+                        soldier.placeInTank--;
+                    }
                 }
             }
         }
