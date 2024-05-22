@@ -467,7 +467,7 @@ public class PlayerController : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit, 100))
             {
-                TankController tank = hit.collider.GetComponent<TankController>();
+                TankController tank = hit.collider.GetComponentInParent<TankController>();
                 if (tank != null)
                 {
                     var crewmate = tank.getAnyCrewmate();
@@ -492,12 +492,11 @@ public class PlayerController : MonoBehaviour
                         cursorSwitcher.ChangeType("default");
                 }
             }
-
-            if (vehicleWantToBoardOn != null)
-            {
-                if (Vector3.Distance(transform.position, vehicleWantToBoardOn.transform.position) <= boardingDistance)
-                    boardOnVehicle();
-            }
+        }
+        if (vehicleWantToBoardOn != null)
+        {
+            if (Vector3.Distance(transform.position, vehicleWantToBoardOn.transform.position) <= boardingDistance)
+                boardOnVehicle();
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -313,58 +314,106 @@ public class SelectManager : MonoBehaviour
         specialization.text = currentChar.specialization;
 
         weaponSelect.options.Clear();
-        if (currentChar.currentWeapon != null)
-        {
-            weaponSelect.captionImage.sprite = currentChar.currentWeapon.image;
-            weaponSelect.captionText.text = currentChar.currentWeapon.selectId + ". " + currentChar.currentWeapon.name;
-            ammoCount.text = currentChar.currentWeapon.currentAmmo + "/" + currentChar.currentWeapon.magSize;
-        }
-        else
-        {
-            weaponSelect.captionImage.sprite = emptyImage;
-            weaponSelect.captionText.text = "";
-            ammoCount.text = "";
-        }
         weaponSelect.options.Add(new Dropdown.OptionData("", emptyImage));
-        for (int i = 0; i < currentChar.inventory_items.Count; i++)
-        {
-            if (currentChar.inventory_items[i].type == "weapon")
-            {
-                currentChar.inventory_items[i].selectId = weaponSelect.options.Count;
-                weaponSelect.options.Add(new Dropdown.OptionData(currentChar.inventory_items[i].selectId + ". " + currentChar.inventory_items[i].name, currentChar.inventory_items[i].image));
-                if (currentChar.inventory_items[i] == currentChar.currentWeapon)
-                    weaponSelect.value = currentChar.inventory_items[i].selectId;
-            }
-        }
-        if (currentChar.currentWeapon == null)
-            weaponSelect.value = 0;
 
-        grenadeSelect.options.Clear();
-        if (currentChar.currentGrenade != null)
+        if (currentChar.playerController != null)
         {
-            grenadeSelect.captionImage.sprite = currentChar.currentGrenade.image;
-            grenadeSelect.captionText.text = currentChar.currentGrenade.selectId + ". " + currentChar.currentGrenade.name;
-            grenadesCount.text = currentChar.currentGrenade.currentAmmo + "/" + currentChar.currentGrenade.magSize;
-        }
-        else
-        {
-            grenadeSelect.captionImage.sprite = emptyImage;
-            grenadeSelect.captionText.text = "";
-            grenadesCount.text = "";
-        }
-        grenadeSelect.options.Add(new Dropdown.OptionData("", emptyImage));
-        for (int i = 0; i < currentChar.inventory_items.Count; i++)
-        {
-            if (currentChar.inventory_items[i].type == "grenade")
+            if (currentChar.currentWeapon != null)
             {
-                currentChar.inventory_items[i].selectId = grenadeSelect.options.Count;
-                grenadeSelect.options.Add(new Dropdown.OptionData(currentChar.inventory_items[i].selectId + ". " + currentChar.inventory_items[i].name, currentChar.inventory_items[i].image));
-                if (currentChar.inventory_items[i] == currentChar.currentGrenade)
-                    grenadeSelect.value = currentChar.inventory_items[i].selectId;
+                weaponSelect.captionImage.sprite = currentChar.currentWeapon.image;
+                weaponSelect.captionText.text = currentChar.currentWeapon.selectId + ". " + currentChar.currentWeapon.name;
+                ammoCount.text = currentChar.currentWeapon.currentAmmo + "/" + currentChar.currentWeapon.magSize;
+            }
+            else
+            {
+                weaponSelect.captionImage.sprite = emptyImage;
+                weaponSelect.captionText.text = "";
+                ammoCount.text = "";
+            }
+            for (int i = 0; i < currentChar.inventory_items.Count; i++)
+            {
+                if (currentChar.inventory_items[i].type == "weapon")
+                {
+                    currentChar.inventory_items[i].selectId = weaponSelect.options.Count;
+                    weaponSelect.options.Add(new Dropdown.OptionData(currentChar.inventory_items[i].selectId + ". " + currentChar.inventory_items[i].name, currentChar.inventory_items[i].image));
+                    if (currentChar.inventory_items[i] == currentChar.currentWeapon)
+                        weaponSelect.value = currentChar.inventory_items[i].selectId;
+                }
+            }
+            if (currentChar.currentWeapon == null)
+                weaponSelect.value = 0;
+
+            grenadeSelect.options.Clear();
+            if (currentChar.currentGrenade != null)
+            {
+                grenadeSelect.captionImage.sprite = currentChar.currentGrenade.image;
+                grenadeSelect.captionText.text = currentChar.currentGrenade.selectId + ". " + currentChar.currentGrenade.name;
+                grenadesCount.text = currentChar.currentGrenade.currentAmmo + "/" + currentChar.currentGrenade.magSize;
+            }
+            else
+            {
+                grenadeSelect.captionImage.sprite = emptyImage;
+                grenadeSelect.captionText.text = "";
+                grenadesCount.text = "";
+            }
+            grenadeSelect.options.Add(new Dropdown.OptionData("", emptyImage));
+            for (int i = 0; i < currentChar.inventory_items.Count; i++)
+            {
+                if (currentChar.inventory_items[i].type == "grenade")
+                {
+                    currentChar.inventory_items[i].selectId = grenadeSelect.options.Count;
+                    grenadeSelect.options.Add(new Dropdown.OptionData(currentChar.inventory_items[i].selectId + ". " + currentChar.inventory_items[i].name, currentChar.inventory_items[i].image));
+                    if (currentChar.inventory_items[i] == currentChar.currentGrenade)
+                        grenadeSelect.value = currentChar.inventory_items[i].selectId;
+                }
+            }
+            if (currentChar.currentGrenade == null)
+                grenadeSelect.value = 0;
+        } 
+        else if (currentChar.tankController != null)
+        {
+            weaponSelect.options.Add(new Dropdown.OptionData("0. " + currentChar.tankController.mainGun.name, currentChar.tankController.mainGun.image));
+            if (currentChar.tankController.currentWeapon == currentChar.tankController.mainGun)
+            {
+                weaponSelect.captionImage.sprite = currentChar.tankController.currentWeapon.image;
+                weaponSelect.captionText.text = "0. " + currentChar.tankController.currentWeapon.name;
+                ammoCount.text = currentChar.tankController.currentWeapon.currentAmmo + "/" + currentChar.tankController.currentWeapon.magSize;
+                
+                weaponSelect.value = 1;
+            }
+            else
+            {
+                weaponSelect.captionImage.sprite = emptyImage;
+                weaponSelect.captionText.text = "";
+                ammoCount.text = "";
+                weaponSelect.value = 0;
+            }
+
+            grenadeSelect.options.Clear();
+            grenadeSelect.options.Add(new Dropdown.OptionData("", emptyImage));
+            grenadeSelect.options.Add(new Dropdown.OptionData("0. " + currentChar.tankController.pairedMgun.name, currentChar.tankController.pairedMgun.image));
+            grenadeSelect.options.Add(new Dropdown.OptionData("1. " + currentChar.tankController.courseMgun.name, currentChar.tankController.courseMgun.image));
+            if (currentChar.tankController.currentWeapon == currentChar.tankController.pairedMgun || currentChar.tankController.currentWeapon == currentChar.tankController.courseMgun)
+            {
+                int index = 0;
+                if (currentChar.tankController.currentWeapon == currentChar.tankController.courseMgun)
+                    index = 1;
+                grenadeSelect.captionImage.sprite = currentChar.tankController.currentWeapon.image;
+                grenadeSelect.captionText.text = index + ". " + currentChar.currentGrenade.name;
+                grenadesCount.text = currentChar.tankController.currentWeapon.currentAmmo + "/" + currentChar.tankController.currentWeapon.magSize;
+                grenadeSelect.value = index + 1;
+            }
+            else
+            {
+                grenadeSelect.captionImage.sprite = emptyImage;
+                grenadeSelect.captionText.text = "";
+                grenadesCount.text = "";
+                grenadeSelect.value = 0;
             }
         }
-        if (currentChar.currentGrenade == null)
-            grenadeSelect.value = 0;
+        
+        
+        
 
         if (Inventory.activeSelf)
         {

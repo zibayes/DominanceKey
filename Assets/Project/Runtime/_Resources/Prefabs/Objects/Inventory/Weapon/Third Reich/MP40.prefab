@@ -325,11 +325,15 @@ MonoBehaviour:
   cursorSwitcher: {fileID: 0}
   outline: {fileID: 4849183249847189394}
   inventoryItem: {fileID: 2421966820931823754}
+  explosive: {fileID: 0}
   rigidbody: {fileID: 0}
   collider: {fileID: 0}
   itemId: 1
   itemName: MP40
   type: weapon
+  highlightIcon: {fileID: 0}
+  highlightIconInactive: {fileID: 0}
+  highlightIconActive: {fileID: 0}
 --- !u!114 &4849183249847189394
 MonoBehaviour:
   m_ObjectHideFlags: 0

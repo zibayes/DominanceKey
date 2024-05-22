@@ -388,11 +388,15 @@ MonoBehaviour:
   cursorSwitcher: {fileID: 0}
   outline: {fileID: 885195860357138819}
   inventoryItem: {fileID: 1590044285791767508}
-  rigidbody: {fileID: 0}
-  collider: {fileID: 0}
+  explosive: {fileID: 0}
+  rigidbody: {fileID: 6621642709384788614}
+  collider: {fileID: 6353074302017739325}
   itemId: 1
   itemName: MG42
   type: weapon
+  highlightIcon: {fileID: 0}
+  highlightIconInactive: {fileID: 0}
+  highlightIconActive: {fileID: 0}
 --- !u!114 &885195860357138819
 MonoBehaviour:
   m_ObjectHideFlags: 0

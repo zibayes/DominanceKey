@@ -34,19 +34,15 @@ public class TankController : MonoBehaviour
     public LayerMask whatCanBeClickedOn;
 
     public float spreadSize;
-    public float effectiveDistance = 60f;
     public float firingAimDecrease = 0f;
     public float firingAimDecreaseMax = 10f;
-    public float aimDecrease;
 
     public bool mainGunLoaded = true;
     public bool mainGunOnReload = false;
     public float mainGunAimDecrease = 10f;
     public float mainGunReloadTime = 2.4f;
-    public string mainGunAmmoType;
 
-    // public float maxFuel = 500f; // now we using power in selection
-    // public float currentFuel = 500f;
+    public float nextShoot = 0f;
 
     public int crewAmount = 4;
     public PlayerController[] crew;
@@ -54,9 +50,8 @@ public class TankController : MonoBehaviour
     public ParticleSystem blackSmoke;
     public ParticleSystem muzzleFlash;
     public MissaleTracer missaleTracer;
+    public BulletTracer bulletTracer;
 
-    public AudioClip shootSFX;
-    public AudioClip reloadSFX;
     public AudioSource audioSourceShoot;
     public Animator gunAnimator;
 
@@ -75,17 +70,23 @@ public class TankController : MonoBehaviour
     public Animator animatorChasisLeft;
     public Animator animatorChasisRight;
 
-    // public float strength = 300f; // health analog
     public float standardSpeed = 6f;
     public float afteburnerSpeed = 12f;
     public bool afteburner = false;
 
-    public GameObject mainGun;
-    public GameObject pairedMgun;
-    public GameObject courseMgun;
-    public GameObject currentWeapon;
+    public GameObject mainGunObj;
+    public InventoryItem mainGun;
+    public GameObject pairedMgunObj;
+    public InventoryItem pairedMgun;
+    public GameObject courseMgunObj;
+    public InventoryItem courseMgun;
+    public InventoryItem currentWeapon;
     public GameObject turret;
     public Transform boardingPlace;
+
+    public int ammoNeed;
+    public int sum;
+    public bool mgunOnReload = false;
 
     public GameObject rig;
     public GameObject aimTargetCursor;
@@ -113,15 +114,21 @@ public class TankController : MonoBehaviour
         canvas = GameObject.Find("Canvas").transform;
         cameraRig = GameObject.Find("CameraRig").transform;
         cursorSwitcher = GameObject.Find("CursorManager").GetComponent<CursorSwitcher>();
-        currentWeapon = mainGun;
 
         lineDrawer = new LineDrawer();
         lineDrawerNoContact = new LineDrawer();
 
-        crew = new PlayerController[crewAmount];
-
         rigidbodies = new List<Rigidbody>(GetComponentsInChildren<Rigidbody>());
         colliders = new List<Collider>(GetComponentsInChildren<Collider>());
+
+        mainGun = Instantiate(mainGun);
+        pairedMgun = Instantiate(pairedMgun);
+        courseMgun = Instantiate(courseMgun);
+        mainGun.model = mainGunObj;
+        pairedMgun.model = pairedMgunObj;
+        courseMgun.model = courseMgunObj;
+
+        currentWeapon = mainGun;
     }
     void Update()
     {
@@ -136,6 +143,20 @@ public class TankController : MonoBehaviour
         {
             mainGunLoaded = true;
             mainGunOnReload = false;
+        }
+
+        if (mgunOnReload && Time.time > reloadOver)
+        {
+            mgunOnReload = false;
+            currentWeapon.currentAmmo = sum;
+            /*
+            if (IsThisCurrentChar())
+            {
+                UIController.ammoCount.text = currentWeapon.currentAmmo + "/" + currentWeapon.magSize;
+                if (inventory.activeSelf)
+                    inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
+            }
+            */
         }
 
         if (selection.power <= 0f)
@@ -193,7 +214,17 @@ public class TankController : MonoBehaviour
             // Start reload
             if (Input.GetKey(KeyCode.R))
             {
-                ReloadMainGun(true);
+                if (currentWeapon == mainGun)
+                {
+                    ReloadMainGun(true);
+                }
+                else
+                {
+                    if (!mgunOnReload)
+                    {
+                        Reload(true);
+                    }
+                }
             }
 
             // Point-and-click Controls
@@ -309,7 +340,7 @@ public class TankController : MonoBehaviour
                     setGunner(getCrewmateWithLowestPriority());
                 if (getGunner() != null)
                 {
-                    spreadSize = effectiveDistance - firingAimDecrease;
+                    spreadSize = currentWeapon.effectiveDistance - firingAimDecrease;
 
                     // if (selection.currentSprite.enabled && currentWeapon != null)
                     {
@@ -329,7 +360,14 @@ public class TankController : MonoBehaviour
                         // Shoot
                         if (Input.GetMouseButton(0) && !selectManager.IsMouseOverUI())
                         {
-                            ShootMainGun(spreadSize, true);
+                            if (currentWeapon == mainGun)
+                            {
+                                ShootMainGun(spreadSize, true);
+                            }
+                            else
+                            {
+                                Shoot(spreadSize, true);
+                            }
                         }
                     }
                 }
@@ -410,12 +448,12 @@ public class TankController : MonoBehaviour
         if (manualControl)
         {
             RaycastHit hitBarrier;
-            Ray aimRay = new Ray(currentWeapon.transform.position, currentWeapon.transform.forward);
+            Ray aimRay = new Ray(currentWeapon.model.transform.position, currentWeapon.model.transform.forward);
             Vector3 finalPoint;
             if (Physics.Raycast(aimRay, out hitBarrier, 1000))
             {
                 DrawWhiteLine(hitBarrier.point);
-                var noContactHit = hitBarrier.point + currentWeapon.transform.forward * (pointToRotate - hitBarrier.point).magnitude;
+                var noContactHit = hitBarrier.point + currentWeapon.model.transform.forward * (pointToRotate - hitBarrier.point).magnitude;
                 DrawRedLine(hitBarrier, noContactHit);
                 finalPoint = hitBarrier.point;
             }
@@ -457,14 +495,14 @@ public class TankController : MonoBehaviour
                 gunAnimator.SetTrigger("Fire");
 
             firingAimDecrease += mainGunAimDecrease;
-            audioSourceShoot.PlayOneShot(shootSFX); 
+            audioSourceShoot.PlayOneShot(currentWeapon.shotSFX[Random.Range(0, currentWeapon.shotSFX.Length)]); 
             muzzleFlash.Play();
-            ParticleSystem flash = Instantiate(muzzleFlash, currentWeapon.transform.position, currentWeapon.transform.rotation);
+            ParticleSystem flash = Instantiate(muzzleFlash, currentWeapon.model.transform.position, currentWeapon.model.transform.rotation);
             Destroy(flash, 1f);
 
             var spread = 60f / spreadSize;
-            Ray shootRay = new Ray(currentWeapon.transform.position, Quaternion.Euler(0, Random.Range(-spread, spread), Random.Range(-spread, spread)) * currentWeapon.transform.forward);
-            MissaleTracer currentBulletTracer = Instantiate(missaleTracer, currentWeapon.transform.position, Quaternion.LookRotation(shootRay.direction));
+            Ray shootRay = new Ray(currentWeapon.model.transform.position, Quaternion.Euler(0, Random.Range(-spread, spread), Random.Range(-spread, spread)) * currentWeapon.model.transform.forward);
+            MissaleTracer currentBulletTracer = Instantiate(missaleTracer, currentWeapon.model.transform.position, Quaternion.LookRotation(shootRay.direction));
             currentBulletTracer.selfRigidbody.AddForce(shootRay.direction.normalized * 100f, ForceMode.Impulse);
             currentBulletTracer.currentPlayer = selection.player;
             currentBulletTracer.manualControl = manualControl;
@@ -484,7 +522,7 @@ public class TankController : MonoBehaviour
             // Take ammo from inventory and load it to the gun
             for (int i = 0; i < selection.inventory_items.Count; i++)
             {
-                if (selection.inventory_items[i].type == mainGunAmmoType)
+                if (selection.inventory_items[i].type == currentWeapon.ammoType)
                 {
                     if (selection.inventory_items[i].IsStackable)
                     {
@@ -524,7 +562,126 @@ public class TankController : MonoBehaviour
                 mainGunOnReload = true;
                 animator.SetTrigger("Reload");
                 reloadOver = Time.time + mainGunReloadTime;
-                audioSourceShoot.PlayOneShot(reloadSFX);
+                audioSourceShoot.PlayOneShot(currentWeapon.reloadSFX);
+            }
+        }
+    }
+
+    public bool Shoot(float spreadSize, bool manualControl)
+    {
+        // makingNoise = true;
+        // makingNoiseTime = Time.time + makingNoiseCooldown;
+
+        bool thereWasShot = false;
+        if (Time.time > nextShoot && currentWeapon.currentAmmo > 0)
+        {
+            thereWasShot = true;
+            currentWeapon.currentAmmo--;
+            /*
+            if (IsThisCurrentChar())
+            {
+                UIController.ammoCount.text = currentWeapon.currentAmmo + "/" + currentWeapon.magSize;
+                if (inventory.activeSelf)
+                    inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
+            }
+            */
+
+            if (manualControl)
+            {
+                cursorSwitcher.ChangeType("fire");
+            }
+
+            nextShoot = Time.time + 1f / currentWeapon.fireRate;
+            firingAimDecrease += currentWeapon.AimDecrease;
+            audioSourceShoot.PlayOneShot(currentWeapon.shotSFX[Random.Range(0, currentWeapon.shotSFX.Length)]);
+            muzzleFlash.Play();
+            ParticleSystem flash = Instantiate(muzzleFlash, currentWeapon.model.transform.position, currentWeapon.model.transform.rotation);
+            Destroy(flash, 1f);
+
+            var spread = 60f / spreadSize;
+            Ray shootRay = new Ray(currentWeapon.model.transform.position, Quaternion.Euler(0, Random.Range(-spread, spread), Random.Range(-spread, spread)) * currentWeapon.model.transform.forward);
+            BulletTracer currentBulletTracer = Instantiate(bulletTracer, currentWeapon.model.transform.position, Quaternion.LookRotation(shootRay.direction));
+            currentBulletTracer.selfRigidbody.AddForce(shootRay.direction.normalized * currentWeapon.bulletSpeed, ForceMode.Impulse);
+            currentBulletTracer.damage = currentWeapon.damage;
+            currentBulletTracer.distanceKoef = currentWeapon.distanceKoef;
+            currentBulletTracer.startPoint = currentWeapon.model.transform.position;
+            currentBulletTracer.currentPlayer = selection.player;
+            currentBulletTracer.manualControl = manualControl;
+        }
+        return thereWasShot;
+    }
+
+    public void Reload(bool manualControl)
+    {
+        if (currentWeapon.currentAmmo < currentWeapon.magSize)
+        {
+            bool haveAmmo = false;
+            ammoNeed = 0;
+            List<int> indexes = new List<int>();
+            sum = currentWeapon.currentAmmo;
+            // Check ammo count
+            for (int i = 0; i < selection.inventory_items.Count; i++)
+            {
+                if (selection.inventory_items[i].type == currentWeapon.ammoType)
+                {
+                    indexes.Add(i);
+                    if (selection.inventory_items[i].IsStackable)
+                    {
+                        if (sum + selection.inventory_items[i].currentAmount >= currentWeapon.magSize)
+                        {
+                            ammoNeed += currentWeapon.magSize - sum;
+                            sum = currentWeapon.magSize;
+                            haveAmmo = true;
+                            break;
+                        }
+                        else
+                        {
+                            sum += selection.inventory_items[i].currentAmount;
+                            ammoNeed += selection.inventory_items[i].currentAmount;
+                        }
+                    }
+                    else
+                    {
+                        haveAmmo = true;
+                        break;
+                    }
+                }
+            }
+            if (ammoNeed > 0)
+                haveAmmo = true;
+            // Take ammo from inventory and load it to the gun
+            if (haveAmmo && indexes.Any())
+            {
+                var ammoNeedTmp = ammoNeed;
+                for (int i = indexes.Count - 1; i >= 0; i--)
+                {
+                    if (i != 0)
+                    {
+                        ammoNeedTmp -= selection.inventory_items[indexes[i]].currentAmount;
+                        selection.inventory_items.RemoveAt(indexes[i]);
+                    }
+                    else
+                    {
+                        selection.inventory_items[indexes[i]].currentAmount -= ammoNeedTmp;
+                        if (selection.inventory_items[indexes[i]].currentAmount <= 0)
+                            selection.inventory_items.RemoveAt(indexes[i]);
+                    }
+
+                }
+
+                if (IsThisCurrentChar())
+                {
+                    if (inventory.activeSelf)
+                        inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
+                }
+                if (manualControl)
+                {
+                    cursorSwitcher.ChangeType("reload");
+                }
+
+                mgunOnReload = true;
+                reloadOver = Time.time + currentWeapon.reloadTime;
+                audioSourceShoot.PlayOneShot(currentWeapon.reloadSFX);
             }
         }
     }
@@ -634,6 +791,7 @@ public class TankController : MonoBehaviour
 
         blackSmoke.Play();
         ParticleSystem flash = Instantiate(blackSmoke, transform.position + transform.up, Quaternion.LookRotation(transform.up));
+        Destroy(flash, 60f);
         turret.transform.parent = null;
 
         selection.enabled = false;
@@ -652,7 +810,7 @@ public class TankController : MonoBehaviour
         if (currentWeapon != null)
         {
             lineDrawer.lineSize = 0.05f;
-            lineDrawer.DrawLineInGameView(currentWeapon.transform.position, hitBarrier, Color.white);
+            lineDrawer.DrawLineInGameView(currentWeapon.model.transform.position, hitBarrier, Color.white);
         }
 
     }
@@ -662,7 +820,7 @@ public class TankController : MonoBehaviour
         if (currentWeapon != null)
         {
             lineDrawer.lineSize = 0f;
-            lineDrawer.DrawLineInGameView(currentWeapon.transform.position, Vector3.forward, Color.white);
+            lineDrawer.DrawLineInGameView(currentWeapon.model.transform.position, Vector3.forward, Color.white);
         }
 
     }
@@ -677,7 +835,7 @@ public class TankController : MonoBehaviour
         if (currentWeapon != null)
         {
             lineDrawerNoContact.lineSize = 0f;
-            lineDrawerNoContact.DrawLineInGameView(currentWeapon.transform.position, Vector3.forward, Color.white);
+            lineDrawerNoContact.DrawLineInGameView(currentWeapon.model.transform.position, Vector3.forward, Color.white);
         }
     }
 
