@@ -12,9 +12,12 @@ public class IdleBehabiour : StateMachineBehaviour
         {
             playerController.agent.ResetPath();
             playerController.TurnOffAiming();
-            if (playerController.selection.currentWeapon.currentAmmo <= playerController.selection.currentWeapon.magSize * 0.5f)
+            if (playerController.attackType != "hold")
             {
-                playerController.Reload(false);
+                if (playerController.selection.currentWeapon.currentAmmo <= playerController.selection.currentWeapon.magSize * 0.5f)
+                {
+                    playerController.Reload(false);
+                }
             }
 
             if (playerController.movementType != "hold")

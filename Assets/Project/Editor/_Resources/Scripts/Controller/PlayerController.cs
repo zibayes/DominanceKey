@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting.YamlDotNet.Core.Tokens;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -514,6 +515,22 @@ public class PlayerController : MonoBehaviour
 
     public void boardOnVehicle()
     {
+        if (selectManager.selectedArmy.Contains(selection))
+        {
+            var thisSoldier = selectManager.selectedArmy.Find(x => x == selection);
+            thisSoldier.TurnOffSelector();
+            selectManager.selectedArmy.Remove(thisSoldier);
+            if (selectManager.selectedArmy.Any())
+            {
+                selectManager.selectedArmy[0].TurnOnCurrent();
+                selectManager.UnitInfoGUIOn();
+            }
+            else
+            {
+                selectManager.UnitInfoGUIOff();
+            }
+        }
+
         placeInTank = vehicleWantToBoardOn.countCrew();
         int freeRole = vehicleWantToBoardOn.getFreeCrewRole();
         vehicleWantToBoardOn.crew[freeRole] = this;
@@ -522,6 +539,8 @@ public class PlayerController : MonoBehaviour
         enabled = false;
         selection.enabled = false;
         gameObject.SetActive(false);
+
+        cursorSwitcher.ChangeType("default");
     }
 
     public void MoveToPoint(Vector3 directionVector)

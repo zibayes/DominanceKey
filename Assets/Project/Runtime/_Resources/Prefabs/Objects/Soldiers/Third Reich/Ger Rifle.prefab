@@ -69,6 +69,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8735198962594233626, guid: 5572f5d55c2b2604e8ebf38d9f8647fa, type: 3}
+      propertyPath: portrait
+      value: 
+      objectReference: {fileID: 21300000, guid: 274cab5a059907940ba532745fb89075, type: 3}
+    - target: {fileID: 8735198962594233626, guid: 5572f5d55c2b2604e8ebf38d9f8647fa, type: 3}
       propertyPath: specialization
       value: "\u0421\u0442\u0440\u0435\u043B\u043E\u043A"
       objectReference: {fileID: 0}

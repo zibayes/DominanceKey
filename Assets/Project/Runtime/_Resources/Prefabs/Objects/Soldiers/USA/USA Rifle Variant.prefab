@@ -9,6 +9,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 425123620672703696, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
+      propertyPath: portrait
+      value: 
+      objectReference: {fileID: 21300000, guid: bbb67913119b6e943ba67e49b631e017, type: 3}
+    - target: {fileID: 425123620672703696, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
       propertyPath: start_inventory_items.Array.data[0]
       value: 
       objectReference: {fileID: 976205344106712657, guid: d6f4ccf928dd7d348a4fb5c6b98b251c, type: 3}

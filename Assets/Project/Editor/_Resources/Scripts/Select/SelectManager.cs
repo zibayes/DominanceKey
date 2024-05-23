@@ -236,21 +236,27 @@ public class SelectManager : MonoBehaviour
     //Checks if the correct characters can be selected and then "selects" them
     void CheckForSelectedCharacters() {
         foreach (SelectableCharacter soldier in selectableChars) {
-            Vector2 screenPos = selectCam.WorldToScreenPoint(soldier.transform.position);
-            if (SelectingRect.Contains(screenPos)) {
-                if (soldier.player == player)
+            if (soldier.isActiveAndEnabled)
+            {
+                Vector2 screenPos = selectCam.WorldToScreenPoint(soldier.transform.position);
+                if (SelectingRect.Contains(screenPos))
                 {
-                    if (!selectedArmy.Contains(soldier))
-                        selectedArmy.Add(soldier);
-                    soldier.TurnOnSelector();
+                    if (soldier.player == player)
+                    {
+                        if (!selectedArmy.Contains(soldier))
+                            selectedArmy.Add(soldier);
+                        soldier.TurnOnSelector();
+                    }
+                    if (selectedArmy.Any())
+                        selectedArmy[0].TurnOnCurrent();
                 }
-                if (selectedArmy.Any())
-                    selectedArmy[0].TurnOnCurrent();
-            } else if (!SelectingRect.Contains(screenPos) && soldier.player == player) {
-                soldier.TurnOffSelector();
+                else if (!SelectingRect.Contains(screenPos) && soldier.player == player)
+                {
+                    soldier.TurnOffSelector();
 
-                if (selectedArmy.Contains(soldier))
-                    selectedArmy.Remove(soldier);
+                    if (selectedArmy.Contains(soldier))
+                        selectedArmy.Remove(soldier);
+                }
             }
         }
     }
@@ -373,7 +379,7 @@ public class SelectManager : MonoBehaviour
         else if (currentChar.tankController != null)
         {
             weaponSelect.options.Add(new Dropdown.OptionData("0. " + currentChar.tankController.mainGun.name, currentChar.tankController.mainGun.image));
-            if (currentChar.tankController.currentWeapon == currentChar.tankController.mainGun)
+            if (ReferenceEquals(currentChar.tankController.currentWeapon, currentChar.tankController.mainGun))
             {
                 weaponSelect.captionImage.sprite = currentChar.tankController.currentWeapon.image;
                 weaponSelect.captionText.text = "0. " + currentChar.tankController.currentWeapon.name;
@@ -391,12 +397,15 @@ public class SelectManager : MonoBehaviour
 
             grenadeSelect.options.Clear();
             grenadeSelect.options.Add(new Dropdown.OptionData("", emptyImage));
-            grenadeSelect.options.Add(new Dropdown.OptionData("0. " + currentChar.tankController.pairedMgun.name, currentChar.tankController.pairedMgun.image));
-            grenadeSelect.options.Add(new Dropdown.OptionData("1. " + currentChar.tankController.courseMgun.name, currentChar.tankController.courseMgun.image));
-            if (currentChar.tankController.currentWeapon == currentChar.tankController.pairedMgun || currentChar.tankController.currentWeapon == currentChar.tankController.courseMgun)
+            if (currentChar.tankController.pairedMgun != null)
+                grenadeSelect.options.Add(new Dropdown.OptionData("0. Спаренный пулемёт", currentChar.tankController.pairedMgun.image)); //  + currentChar.tankController.pairedMgun.name
+            if (currentChar.tankController.courseMgun != null)
+                grenadeSelect.options.Add(new Dropdown.OptionData("1. Курсовой пулемёт", currentChar.tankController.courseMgun.image)); //  + currentChar.tankController.courseMgun.name
+            if ((ReferenceEquals(currentChar.tankController.currentWeapon, currentChar.tankController.pairedMgun) || 
+                ReferenceEquals(currentChar.tankController.currentWeapon, currentChar.tankController.courseMgun)) && currentChar.tankController.currentWeapon != null)
             {
                 int index = 0;
-                if (currentChar.tankController.currentWeapon == currentChar.tankController.courseMgun)
+                if (ReferenceEquals(currentChar.tankController.currentWeapon, currentChar.tankController.courseMgun))
                     index = 1;
                 grenadeSelect.captionImage.sprite = currentChar.tankController.currentWeapon.image;
                 grenadeSelect.captionText.text = index + ". " + currentChar.currentGrenade.name;
@@ -451,8 +460,8 @@ public class SelectManager : MonoBehaviour
                     if (index == soldier.placeInTank)
                     {
                         soldier.gameObject.SetActive(true);
-                        soldier.enabled = false;
-                        soldier.selection.enabled = false;
+                        soldier.enabled = true;
+                        soldier.selection.enabled = true;
                         soldier.transform.position = tankController.boardingPlace.position;
                         tankController.crew[i] = null;
                     }

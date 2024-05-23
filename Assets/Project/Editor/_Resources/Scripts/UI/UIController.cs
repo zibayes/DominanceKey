@@ -11,7 +11,8 @@ public class UIController : MonoBehaviour
     public GameObject Minimap;
     public GameObject Inventory;
     public Text ammoCount;
-    
+    public Text grenadeCount;
+
     public bool isChoseAnotherUnit = false;
 
     public bool isActiveMinimap = false;
@@ -378,18 +379,18 @@ public class UIController : MonoBehaviour
         var selectedChar = selectManager.selectedArmy[0];
         if (selectedChar.playerController != null)
         {
-            if ("" == GameObject.Find("WeaponSelect").GetComponent<Dropdown>().captionText.text)
+            if ("" == selectManager.weaponSelect.GetComponent<Dropdown>().captionText.text)
             {
                 selectedChar.currentWeapon = null;
-                GameObject.Find("AmmoCount").GetComponent<Text>().text = "";
-                GameObject.Find("WeaponSelect").GetComponent<Dropdown>().captionImage.sprite = selectManager.emptyImage;
+                selectManager.ammoCount.GetComponent<Text>().text = "";
+                selectManager.weaponSelect.GetComponent<Dropdown>().captionImage.sprite = selectManager.emptyImage;
                 Destroy(RecursiveFindChild(selectedChar.transform.parent.transform, "WeaponHolder").GetChild(0).gameObject);
             }
             else
             {
                 for (int i = 0; i < selectedChar.inventory_items.Count; i++)
                 {
-                    if (selectedChar.inventory_items[i].selectId + ". " + selectedChar.inventory_items[i].name == GameObject.Find("WeaponSelect").GetComponent<Dropdown>().captionText.text)
+                    if (selectedChar.inventory_items[i].selectId + ". " + selectedChar.inventory_items[i].name == selectManager.weaponSelect.GetComponent<Dropdown>().captionText.text)
                     {
                         selectedChar.currentWeapon = selectedChar.inventory_items[i];
                         selectedChar.playerController.animator.SetTrigger("TakeWeapon");
@@ -448,14 +449,15 @@ public class UIController : MonoBehaviour
             }
             else
             {
-                if ("0. " + selectedChar.tankController.pairedMgun.name == GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().captionText.text)
+                if ("0. Спаренный пулемёт" == GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().captionText.text) //  + selectedChar.tankController.pairedMgun.name
                 {
                     selectedChar.tankController.currentWeapon = selectedChar.tankController.pairedMgun;
                 }
-                else if ("1. " + selectedChar.tankController.courseMgun.name == GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().captionText.text)
+                else if ("1. Курсовой пулемёт" == GameObject.Find("GrenadeSelect").GetComponent<Dropdown>().captionText.text) //  + selectedChar.tankController.courseMgun.name
                 {
                     selectedChar.tankController.currentWeapon = selectedChar.tankController.courseMgun;
                 }
+                selectManager.grenadesCount.text = selectedChar.tankController.currentWeapon.currentAmmo + "/" + selectedChar.tankController.currentWeapon.magSize;
             }
         }
     }

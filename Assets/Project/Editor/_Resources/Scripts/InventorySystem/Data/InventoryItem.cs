@@ -137,15 +137,8 @@ public class InventoryItem : MonoBehaviour
         rightHandRot = item.rightHandRot;
     }
 
-    // Start is called before the first frame update
-    void Start()
+    public object Clone()
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
+        return this.MemberwiseClone();
     }
 }
