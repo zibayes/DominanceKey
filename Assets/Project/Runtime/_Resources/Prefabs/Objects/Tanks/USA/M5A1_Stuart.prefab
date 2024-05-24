@@ -3533,6 +3533,7 @@ GameObject:
   - component: {fileID: 6088484129136115927}
   - component: {fileID: 4782841158330588741}
   - component: {fileID: 4416401319529767031}
+  - component: {fileID: 4643985408059813444}
   - component: {fileID: 4438632600209641584}
   - component: {fileID: 2662053809535524929}
   - component: {fileID: -3284896961644176460}
@@ -3540,6 +3541,7 @@ GameObject:
   - component: {fileID: 828296171016674874}
   - component: {fileID: -5204400252400036203}
   - component: {fileID: 6972048931957977107}
+  - component: {fileID: 5406491089808065797}
   m_Layer: 0
   m_Name: M5A1_Stuart
   m_TagString: Untagged
@@ -3619,6 +3621,25 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &4643985408059813444
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7673474516418935271}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cf0ec489347bd48bdd0b1f1e454266, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tankController: {fileID: 4438632600209641584}
+  targetTag: Player
+  rays: 24
+  distance: 33
+  angle: 40
+  seeEnemy: 0
+  currentTarget: {fileID: 0}
 --- !u!114 &4438632600209641584
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3659,7 +3680,6 @@ MonoBehaviour:
   mainGunLoaded: 1
   mainGunOnReload: 0
   mainGunAimDecrease: 10
-  mainGunReloadTime: 2.4
   nextShoot: 0
   crewAmount: 4
   crew:
@@ -3711,6 +3731,16 @@ MonoBehaviour:
   rigidbodies: []
   colliders: []
   collider: {fileID: 4782841158330588741}
+  attackType: open
+  movementType: free
+  makingNoise: 0
+  makingNoiseCooldown: 1
+  makingNoiseTime: 0
+  noiseDetectionRaius: 30
+  noiseDetectionCooldown: 15
+  noiseDetectionTime: 0
+  noiseDetectionTarget: {fileID: 0}
+  tankVision: {fileID: 4643985408059813444}
 --- !u!195 &2662053809535524929
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -4303,6 +4333,27 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!95 &5406491089808065797
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7673474516418935271}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: ca84cea18d0dc564e8238fe271b9e494, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &7767160968152535748
 GameObject:
   m_ObjectHideFlags: 0

@@ -162,8 +162,8 @@ MonoBehaviour:
   AimDecrease: 10
   reloadTime: 0.35
   damage: 0
-  burstSize: 0
-  burstSizeDelta: 0
+  burstSize: 3
+  burstSizeDelta: 1
   nextBurstTime: 0
   nextBurstTimeDelta: 0
   name: 20mm M38

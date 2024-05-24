@@ -158,7 +158,7 @@ MonoBehaviour:
   AimDecrease: 10
   reloadTime: 2.4
   damage: 0
-  burstSize: 0
+  burstSize: 1
   burstSizeDelta: 0
   nextBurstTime: 0
   nextBurstTimeDelta: 0

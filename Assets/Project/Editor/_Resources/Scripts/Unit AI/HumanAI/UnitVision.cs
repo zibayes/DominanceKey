@@ -115,11 +115,11 @@ public class UnitVision : MonoBehaviour
                 {
                     playerController.Rotate(currentTarget.transform.position);
                 }
-                if (currentTarget != null)
-                {
-                    if (currentTarget.selection.health <= 0)
-                        currentTarget = null;
-                }
+            }
+            if (currentTarget != null)
+            {
+                if (currentTarget.selection.health <= 0)
+                    currentTarget = null;
             }
         }
     }

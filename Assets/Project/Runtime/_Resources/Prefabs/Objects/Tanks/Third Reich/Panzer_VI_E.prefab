@@ -4266,6 +4266,7 @@ GameObject:
   - component: {fileID: 1566460308876667354}
   - component: {fileID: 4054182548148097650}
   - component: {fileID: 2094734399470216983}
+  - component: {fileID: 6668156916638672326}
   - component: {fileID: 2385502371799392407}
   - component: {fileID: 4294682737465479497}
   - component: {fileID: 3644221524288322268}
@@ -4273,6 +4274,7 @@ GameObject:
   - component: {fileID: 193531070661806381}
   - component: {fileID: 2637364336310536811}
   - component: {fileID: 2623382376063424566}
+  - component: {fileID: 3466751250504025738}
   m_Layer: 0
   m_Name: Panzer_VI_E
   m_TagString: Untagged
@@ -4352,6 +4354,25 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &6668156916638672326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9114530629843704190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4cf0ec489347bd48bdd0b1f1e454266, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tankController: {fileID: 2385502371799392407}
+  targetTag: Player
+  rays: 24
+  distance: 33
+  angle: 40
+  seeEnemy: 0
+  currentTarget: {fileID: 0}
 --- !u!114 &2385502371799392407
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4372,7 +4393,6 @@ MonoBehaviour:
   canvas: {fileID: 0}
   cameraRig: {fileID: 0}
   player: 0
-  animator: {fileID: 0}
   rigidbody: {fileID: 2094734399470216983}
   agent: {fileID: 4294682737465479497}
   selection: {fileID: 9048252660249549148}
@@ -4393,7 +4413,6 @@ MonoBehaviour:
   mainGunLoaded: 1
   mainGunOnReload: 0
   mainGunAimDecrease: 10
-  mainGunReloadTime: 2.4
   nextShoot: 0
   crewAmount: 4
   crew:
@@ -4407,13 +4426,6 @@ MonoBehaviour:
   bulletTracer: {fileID: -244174430802944491, guid: 2cadf57456789ab408a0c8b89e748508, type: 3}
   audioSourceShoot: {fileID: 5990035264233634512}
   gunAnimator: {fileID: 1467840361042549658}
-  mgunShootSFX:
-  - {fileID: 8300000, guid: 3355479c3a47fa9438e75d947dfc2488, type: 3}
-  - {fileID: 8300000, guid: 4883c6543575b5b48ad6d85be97fb8ad, type: 3}
-  - {fileID: 8300000, guid: 6e25546e5bd65b1409bb5a3981973357, type: 3}
-  - {fileID: 8300000, guid: 9034457ffd51c5842a835b9e2ce455d9, type: 3}
-  - {fileID: 8300000, guid: c63a85231a8f2484d99dedbb6026e079, type: 3}
-  mgunReloadSFX: {fileID: 8300000, guid: fffaec088a749bf489c65ce98144e62c, type: 3}
   audioSourceMgun: {fileID: 2623382376063424566}
   moveSFX: {fileID: 8300000, guid: b9183ff154541494cbc88defc97815d5, type: 3}
   audioSourceMove: {fileID: 3644221524288322268}
@@ -4452,6 +4464,16 @@ MonoBehaviour:
   rigidbodies: []
   colliders: []
   collider: {fileID: 4054182548148097650}
+  attackType: open
+  movementType: free
+  makingNoise: 0
+  makingNoiseCooldown: 1
+  makingNoiseTime: 0
+  noiseDetectionRaius: 30
+  noiseDetectionCooldown: 15
+  noiseDetectionTime: 0
+  noiseDetectionTarget: {fileID: 0}
+  tankVision: {fileID: 6668156916638672326}
 --- !u!195 &4294682737465479497
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -5044,3 +5066,24 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!95 &3466751250504025738
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9114530629843704190}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: ca84cea18d0dc564e8238fe271b9e494, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

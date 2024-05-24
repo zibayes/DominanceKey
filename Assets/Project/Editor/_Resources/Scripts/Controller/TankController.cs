@@ -103,6 +103,19 @@ public class TankController : MonoBehaviour
     public List<Collider> colliders;
     public Collider collider;
 
+    public string attackType = "open"; // open - return - hold
+    public string movementType = "free"; // free - zone - hold
+
+    public bool makingNoise = false;
+    public float makingNoiseCooldown = 1f;
+    public float makingNoiseTime = 0;
+    public float noiseDetectionRaius = 30f;
+    public float noiseDetectionCooldown = 15f;
+    public float noiseDetectionTime = 0;
+    public PlayerController noiseDetectionTarget = null;
+
+    public TankVision tankVision;
+
     void Start()
     {
         selectManager = GameObject.Find("SelectingBox").GetComponent<SelectManager>();
@@ -154,7 +167,6 @@ public class TankController : MonoBehaviour
     }
     void Update()
     {
-        // Die();
         // Aim decrease decrement
         if (firingAimDecrease > 0)
             firingAimDecrease -= 0.08f;
@@ -434,7 +446,6 @@ public class TankController : MonoBehaviour
                     index /= 2;
             }
 
-            // var direction = directionVector - transform.position;
             var navigator = Instantiate(new GameObject(), transform);
             navigator.transform.parent = null;
             navigator.transform.position = transform.position;
@@ -507,13 +518,12 @@ public class TankController : MonoBehaviour
 
     public bool ShootMainGun(float spreadSize, bool manualControl)
     {
-        // makingNoise = true;
-        // makingNoiseTime = Time.time + makingNoiseCooldown;
-
         bool thereWasShot = false;
         if (mainGunLoaded)
         {
             thereWasShot = true;
+            makingNoise = true;
+            makingNoiseTime = Time.time + makingNoiseCooldown;
 
             if (manualControl)
             {
@@ -596,13 +606,13 @@ public class TankController : MonoBehaviour
 
     public bool ShootMgun(float spreadSize, bool manualControl)
     {
-        // makingNoise = true;
-        // makingNoiseTime = Time.time + makingNoiseCooldown;
-
         bool thereWasShot = false;
         if (Time.time > nextShoot && currentWeapon.currentAmmo > 0)
         {
             thereWasShot = true;
+            makingNoise = true;
+            makingNoiseTime = Time.time + makingNoiseCooldown;
+
             currentWeapon.currentAmmo--;
 
             if (IsThisCurrentChar())
@@ -824,6 +834,7 @@ public class TankController : MonoBehaviour
         turret.transform.parent = null;
 
         selection.enabled = false;
+        tankVision.enabled = false;
         enabled = false;
     }
 
