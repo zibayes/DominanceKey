@@ -7,21 +7,14 @@ public class TankVision : MonoBehaviour
     public int rays = 8;
     public int distance = 33;
     public float angle = 40;
-    // public Vector3 offset;
-    // public GameObject[] targets;
     public bool seeEnemy = false;
     public PlayerController currentTarget;
-
-    void Start()
-    {
-        // targets = GameObject.FindGameObjectsWithTag(targetTag);
-    }
+    public TankController currentTankTarget;
 
     bool GetRaycast(Vector3 dir)
     {
         bool result = false;
         RaycastHit hit;
-        // Vector3 pos = transform.position + offset;
         var offset = transform.forward * 0.25f + transform.up;
         Vector3 pos = transform.position + offset;
         if (Physics.Raycast(pos, dir, out hit, distance))
@@ -59,7 +52,41 @@ public class TankVision : MonoBehaviour
             }
             else
             {
-                Debug.DrawLine(pos, hit.point, Color.blue);
+                var tank = hit.transform.GetComponentInParent<TankController>();
+                if (tank != null)
+                {
+                    if (tankController.selectManager.selectableChars.Contains(tank.selection))
+                    {
+                        if (tankController.selection.player != tank.selection.player)
+                        {
+                            result = true;
+                            if (currentTankTarget == null)
+                            {
+                                currentTankTarget = tank;
+                            }
+                            else if (currentTankTarget != tank)
+                            {
+                                if (Vector3.Distance(currentTankTarget.transform.position, transform.position) > Vector3.Distance(tank.transform.position, transform.position))
+                                {
+                                    currentTankTarget = tank;
+                                }
+                            }
+                            Debug.DrawLine(pos, hit.point, Color.green);
+                        }
+                        else
+                        {
+                            Debug.DrawLine(pos, hit.point, Color.yellow);
+                        }
+                    }
+                    else
+                    {
+                        Debug.DrawLine(pos, hit.point, Color.blue);
+                    }
+                }
+                else
+                {
+                    Debug.DrawLine(pos, hit.point, Color.blue);
+                }
             }
         }
         else
@@ -98,29 +125,33 @@ public class TankVision : MonoBehaviour
 
     void Update()
     {
-        //if (Vector3.Distance(transform.position, target.position) < distance) // Вариант оптимизации...
+        if (RayToScan())
         {
-            if (RayToScan())
+            seeEnemy = true;
+        }
+        else
+        {
+            seeEnemy = false;
+            if (currentTarget == null)
             {
-                seeEnemy = true;   // Контакт с целью
+                currentTarget = tankController.noiseDetectionTarget;
             }
-            else
+            else if(!Input.GetKey(KeyCode.LeftControl) && !tankController.UIController.isActiveManualControl)
             {
-                seeEnemy = false;  // Поиск цели...
-                if (currentTarget == null)
-                {
-                    currentTarget = tankController.noiseDetectionTarget;
-                }
-                else if(!Input.GetKey(KeyCode.LeftControl) && !tankController.UIController.isActiveManualControl)
-                {
-                    tankController.Rotate(currentTarget.transform.position);
-                }
+                tankController.Rotate(currentTarget.transform.position);
             }
-            if (currentTarget != null)
-            {
-                if (currentTarget.selection.health <= 0)
-                    currentTarget = null;
-            }
+        }
+        if (currentTarget != null)
+        {
+            if (currentTarget.selection.health <= 0)
+                currentTarget = null;
+        }
+        if (currentTankTarget != null)
+        {
+            if (!currentTankTarget.enabled)
+                currentTankTarget = null;
+            else if (currentTankTarget.selection.health <= 0)
+                currentTankTarget = null;
         }
     }
 }

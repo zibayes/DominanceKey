@@ -14,29 +14,34 @@ public class TankChaseBehaviour : StateMachineBehaviour
     {
         if (animator.GetBool("EnableAI") && tankController.getAnyCrewmate() != null)
         {
-            if (tankController.tankVision.currentTarget != null)
+            Transform targetTransform = null;
+            if (tankController.tankVision.currentTankTarget != null)
+                targetTransform = tankController.tankVision.currentTankTarget.transform;
+            else if (tankController.tankVision.currentTarget != null)
+                targetTransform = tankController.tankVision.currentTarget.transform;
+            if (targetTransform != null)
             {
                 if (!(Input.GetKey(KeyCode.LeftControl) && tankController.IsThisCurrentChar()))
                 {
                     if (tankController.movementType != "hold")
                     {
-                        if (tankController.agent.destination != tankController.tankVision.currentTarget.transform.position)
+                        if (tankController.agent.destination != targetTransform.position)
                         {
                             if (tankController.getDriver() == null)
                                 tankController.setDriver(tankController.getCrewmateWithLowestPriority());
                             if (tankController.getDriver() != null)
                             {
-                                tankController.MoveToPoint(tankController.tankVision.currentTarget.transform.position);
+                                tankController.MoveToPoint(targetTransform.position);
                             }
                         }
                     }
                     if (tankController.attackType != "hold")
                     {
-                        tankController.Rotate(tankController.tankVision.currentTarget.transform.position + aimingOffset);
+                        tankController.Rotate(targetTransform.position + aimingOffset);
                     }
                 }
 
-                float distance = Vector3.Distance(tankController.transform.position, tankController.tankVision.currentTarget.transform.position);
+                float distance = Vector3.Distance(tankController.transform.position, targetTransform.position);
 
                 if (((tankController.movementType == "free" && distance < tankController.currentWeapon.effectiveDistance) || 
                     (tankController.movementType == "hold" && distance < tankController.currentWeapon.effectiveDistance * 1.5f)) && tankController.tankVision.seeEnemy)

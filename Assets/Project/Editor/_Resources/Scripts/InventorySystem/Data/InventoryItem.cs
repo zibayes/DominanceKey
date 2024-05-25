@@ -36,6 +36,10 @@ public class InventoryItem : MonoBehaviour
     [SerializeField]
     public float reloadTime;
     [SerializeField]
+    public bool onReload;
+    [SerializeField]
+    public float reloadOver;
+    [SerializeField]
     public float damage;
     [SerializeField]
     public int burstSize;

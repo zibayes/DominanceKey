@@ -13,6 +13,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 21300000, guid: eb95df44ca227b44e9bff23659bb8c19, type: 3}
     - target: {fileID: 6309714439697087367, guid: c68d6e5f3603bc44882f8a5d942431a5, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6309714439697087367, guid: c68d6e5f3603bc44882f8a5d942431a5, type: 3}
       propertyPath: specialization
       value: "\u0422\u0430\u043D\u043A\u0438\u0441\u0442"
       objectReference: {fileID: 0}
@@ -24,6 +28,10 @@ PrefabInstance:
       propertyPath: start_inventory_items.Array.data[0]
       value: 
       objectReference: {fileID: 2593837297717417012, guid: 8f5d22568de6e0642bcbfbac3903fb0e, type: 3}
+    - target: {fileID: 6435114678998148657, guid: c68d6e5f3603bc44882f8a5d942431a5, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6500895374868062423, guid: c68d6e5f3603bc44882f8a5d942431a5, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -35,6 +43,10 @@ PrefabInstance:
     - target: {fileID: 6732886480303658170, guid: c68d6e5f3603bc44882f8a5d942431a5, type: 3}
       propertyPath: m_Name
       value: Ger Tankman Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 6732886480303658170, guid: c68d6e5f3603bc44882f8a5d942431a5, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7280854289798330777, guid: c68d6e5f3603bc44882f8a5d942431a5, type: 3}
       propertyPath: m_LocalPosition.x

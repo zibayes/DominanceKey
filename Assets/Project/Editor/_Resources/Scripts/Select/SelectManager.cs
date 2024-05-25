@@ -49,6 +49,9 @@ public class SelectManager : MonoBehaviour
     public GameObject toolTip;
     public GameObject Inventory;
 
+    public GameObject changePose;
+    public GameObject healSelf;
+
     public SampleScene inventoryManager;
     public UIController uiController;
 
@@ -323,6 +326,9 @@ public class SelectManager : MonoBehaviour
 
         if (currentChar.playerController != null)
         {
+            healSelf.SetActive(true);
+            changePose.SetActive(true);
+
             weaponSelect.options.Add(new Dropdown.OptionData("", emptyImage));
             if (currentChar.currentWeapon != null)
             {
@@ -378,6 +384,9 @@ public class SelectManager : MonoBehaviour
         } 
         else if (currentChar.tankController != null)
         {
+            healSelf.SetActive(false);
+            changePose.SetActive(false);
+
             weaponSelect.options.Add(new Dropdown.OptionData("0. " + currentChar.tankController.mainGun.name, currentChar.tankController.mainGun.image));
             if (ReferenceEquals(currentChar.tankController.currentWeapon, currentChar.tankController.mainGun))
             {

@@ -37,10 +37,6 @@ public class TankController : MonoBehaviour
     public float firingAimDecrease = 0f;
     public float firingAimDecreaseMax = 10f;
 
-    public bool mainGunLoaded = true;
-    public bool mainGunOnReload = false;
-    public float mainGunAimDecrease = 10f;
-
     public float nextShoot = 0f;
 
     public int crewAmount = 4;
@@ -174,22 +170,77 @@ public class TankController : MonoBehaviour
         else
             firingAimDecrease = 0f;
 
-        if (Time.time > reloadOver && mainGunOnReload)
+        // Making noise off
+        if (makingNoise && Time.time > makingNoiseTime)
         {
-            mainGunLoaded = true;
-            mainGunOnReload = false;
+            makingNoise = false;
         }
 
-        if (mgunOnReload && Time.time > reloadOver)
+        // Noise detection
+        foreach (SelectableCharacter character in selectManager.selectableChars)
         {
-            mgunOnReload = false;
-            currentWeapon.currentAmmo = sum;
+            if (character.player != selection.player)
+            {
+                if (Vector3.Distance(character.transform.position, transform.position) <= noiseDetectionRaius)
+                {
+                    if (character.playerController != null)
+                    {
+                        if (character.playerController.makingNoise)
+                        {
+                            if (noiseDetectionTarget != null)
+                            {
+                                if (Vector3.Distance(noiseDetectionTarget.transform.position, transform.position) < Vector3.Distance(character.transform.position, transform.position))
+                                {
+                                    noiseDetectionTarget = character.playerController;
+                                    noiseDetectionTime = noiseDetectionCooldown + Time.time;
+                                }
+                            }
+                            else
+                            {
+                                noiseDetectionTarget = character.playerController;
+                                noiseDetectionTime = noiseDetectionCooldown + Time.time;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (noiseDetectionTarget != null)
+        {
+            if (Time.time > noiseDetectionTime || noiseDetectionTarget.selection.health <= 0)
+            {
+                noiseDetectionTarget = null;
+            }
+        }
+
+        if (Time.time > mainGun.reloadOver && mainGun.onReload)
+        {
+            mainGun.currentAmmo = mainGun.magSize;
+            mainGun.onReload = false;
+        }
+        if (pairedMgun.onReload && Time.time > pairedMgun.reloadOver)
+        {
+            // pairedMgun.currentAmmo = sum;
             if (IsThisCurrentChar())
             {
-                UIController.grenadeCount.text = currentWeapon.currentAmmo + "/" + currentWeapon.magSize;
+                if (ReferenceEquals(currentWeapon, pairedMgun))
+                    UIController.grenadeCount.text = currentWeapon.currentAmmo + "/" + currentWeapon.magSize;
                 if (inventory.activeSelf)
                     inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
             }
+            pairedMgun.onReload = false;
+        }
+        if (courseMgun.onReload && Time.time > courseMgun.reloadOver)
+        {
+            // courseMgun.currentAmmo = sum;
+            if (IsThisCurrentChar())
+            {
+                if (ReferenceEquals(currentWeapon, courseMgun))
+                    UIController.grenadeCount.text = currentWeapon.currentAmmo + "/" + currentWeapon.magSize;
+                if (inventory.activeSelf)
+                    inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
+            }
+            courseMgun.onReload = false;
         }
 
         if (selection.power <= 0f)
@@ -250,13 +301,13 @@ public class TankController : MonoBehaviour
             // Start reload
             if (Input.GetKey(KeyCode.R))
             {
-                if (ReferenceEquals(currentWeapon, mainGun))
+                if (!currentWeapon.onReload)
                 {
-                    ReloadMainGun(true, currentWeapon);
-                }
-                else
-                {
-                    if (!mgunOnReload)
+                    if (ReferenceEquals(currentWeapon, mainGun))
+                    {
+                        ReloadMainGun(true, currentWeapon);
+                    }
+                    else
                     {
                         ReloadMgun(true, currentWeapon);
                     }
@@ -523,7 +574,7 @@ public class TankController : MonoBehaviour
     public bool ShootMainGun(float spreadSize, bool manualControl, InventoryItem weapon)
     {
         bool thereWasShot = false;
-        if (mainGunLoaded)
+        if (mainGun.currentAmmo > 0 && !mainGun.onReload)
         {
             thereWasShot = true;
             makingNoise = true;
@@ -536,7 +587,9 @@ public class TankController : MonoBehaviour
             if (gunAnimator != null)
                 gunAnimator.SetTrigger("Fire");
 
-            firingAimDecrease += mainGunAimDecrease;
+            weapon.currentAmmo--;
+
+            firingAimDecrease += mainGun.AimDecrease;
             audioSourceShoot.PlayOneShot(weapon.shotSFX[Random.Range(0, weapon.shotSFX.Length)]); 
             muzzleFlash.Play();
             ParticleSystem flash = Instantiate(muzzleFlash, weapon.model.transform.position, weapon.model.transform.rotation);
@@ -548,7 +601,6 @@ public class TankController : MonoBehaviour
             currentBulletTracer.selfRigidbody.AddForce(shootRay.direction.normalized * 100f, ForceMode.Impulse);
             currentBulletTracer.currentPlayer = selection.player;
             currentBulletTracer.manualControl = manualControl;
-            mainGunLoaded = false;
             ReloadMainGun(manualControl, weapon);
         }
         return thereWasShot;
@@ -601,8 +653,8 @@ public class TankController : MonoBehaviour
                 {
                     cursorSwitcher.ChangeType("reload");
                 }
-                mainGunOnReload = true;
-                reloadOver = Time.time + weapon.reloadTime;
+                weapon.onReload = true;
+                weapon.reloadOver = Time.time + weapon.reloadTime;
                 audioSourceShoot.PlayOneShot(weapon.reloadSFX);
             }
         }
@@ -611,7 +663,7 @@ public class TankController : MonoBehaviour
     public bool ShootMgun(float spreadSize, bool manualControl, InventoryItem weapon)
     {
         bool thereWasShot = false;
-        if (Time.time > nextShoot && weapon.currentAmmo > 0)
+        if (Time.time > nextShoot && weapon.currentAmmo > 0 && !weapon.onReload)
         {
             thereWasShot = true;
             makingNoise = true;
@@ -722,8 +774,9 @@ public class TankController : MonoBehaviour
                         cursorSwitcher.ChangeType("reload");
                     }
 
-                    mgunOnReload = true;
-                    reloadOver = Time.time + weapon.reloadTime;
+                    weapon.currentAmmo = sum;
+                    weapon.onReload = true;
+                    weapon.reloadOver = Time.time + weapon.reloadTime;
                     audioSourceShoot.PlayOneShot(weapon.reloadSFX);
                 }
             }
@@ -842,6 +895,16 @@ public class TankController : MonoBehaviour
         enabled = false;
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        PlayerController playerController = collision.gameObject.GetComponentInParent<PlayerController>();
+        if (playerController != null)
+        {
+            playerController.ReceiveDamage(selection.player, collision.gameObject, collision,
+                playerController.selection.maxHealth, (Input.GetKey(KeyCode.LeftControl) || UIController.isActiveManualControl) && IsThisCurrentChar());
+        }
+    }
+
     public IEnumerator resetRMBTaps(float timeToWait)
     {
         yield return new WaitForSeconds(timeToWait);
@@ -947,7 +1010,7 @@ public class TankController : MonoBehaviour
         if (soldier != null)
             return soldier;
 
-        if (!mainGunOnReload)
+        if (!mainGun.onReload)
         {
             soldier = getCharger();
             setCharger(null);

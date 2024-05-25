@@ -28,9 +28,12 @@ public class TurretIK : MonoBehaviour
         turretCollider.enabled = true;
         mantletCollider.enabled = true;
         gunCollider.enabled = true;
+        turretRigidbody = turretCollider.gameObject.AddComponent<Rigidbody>();
         turretRigidbody.isKinematic = false;
-        
-        turretRigidbody.velocity += turretRigidbody.transform.up * Random.Range(3f, 6f) + 
+        turretRigidbody.mass = 3000f;
+
+
+        turretRigidbody.velocity += turretRigidbody.transform.up * Random.Range(4f, 7f) + 
             turretRigidbody.transform.right * Random.Range(-3f, 3f) + turretRigidbody.transform.forward * Random.Range(-3f, 3f);
         /*
         turretRigidbody.AddForce(turretRigidbody.transform.up * Random.Range(3f, 6f) +

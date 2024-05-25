@@ -410,7 +410,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   turretRig: {fileID: 2750748956376179812}
-  turretRigidbody: {fileID: 2452811205493557168}
+  turretRigidbody: {fileID: 0}
   turretCollider: {fileID: 4932798005173619871}
   mantletCollider: {fileID: 3430994623832139431}
   gunCollider: {fileID: 1147392218131361371}
@@ -894,7 +894,6 @@ GameObject:
   - component: {fileID: 7171565750646536411}
   - component: {fileID: 3931167268346919581}
   - component: {fileID: 4361867435697647504}
-  - component: {fileID: 6576659280119469804}
   - component: {fileID: 7643313146487824244}
   - component: {fileID: 668908233821605620}
   m_Layer: 0
@@ -992,33 +991,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 3.7161674, y: 1.841106, z: 6.3558555}
   m_Center: {x: -0.0013332367, y: 0.916959, z: -0.18787003}
---- !u!54 &6576659280119469804
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2240085732681196276}
-  serializedVersion: 4
-  m_Mass: 8000
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 4
-  m_CollisionDetection: 0
 --- !u!95 &7643313146487824244
 Animator:
   serializedVersion: 5
@@ -3336,7 +3308,6 @@ GameObject:
   - component: {fileID: 6174196522425240062}
   - component: {fileID: 69533152114709045}
   - component: {fileID: 4932798005173619871}
-  - component: {fileID: 2452811205493557168}
   m_Layer: 0
   m_Name: Panzer_VI_E_Turret
   m_TagString: Untagged
@@ -3431,33 +3402,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.2811255, y: 1.039313, z: 2.893635}
   m_Center: {x: -0.0068957806, y: 0.51965624, z: -0.104756474}
---- !u!54 &2452811205493557168
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7084099032786762132}
-  serializedVersion: 4
-  m_Mass: 3000
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &7186462963475640991
 GameObject:
   m_ObjectHideFlags: 0
@@ -4352,7 +4296,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 116
   m_CollisionDetection: 0
 --- !u!114 &6668156916638672326
 MonoBehaviour:
@@ -4373,6 +4317,7 @@ MonoBehaviour:
   angle: 40
   seeEnemy: 0
   currentTarget: {fileID: 0}
+  currentTankTarget: {fileID: 0}
 --- !u!114 &2385502371799392407
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4483,7 +4428,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 9114530629843704190}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 2.9900577
+  m_Radius: 1.67
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -4492,7 +4437,7 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 4.0077543
+  m_Height: 2.95
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4

@@ -54,6 +54,7 @@ public class UIController : MonoBehaviour
     public Sprite liePose;
 
     PlayerController playerWithCommand;
+    TankController tankWithCommand;
 
     public bool isActiveAttack = false;
     public bool attackUse = false;
@@ -153,15 +154,31 @@ public class UIController : MonoBehaviour
     {
         if (selectManager.selectedArmy.Any())
         {
-            if (selectManager.selectedArmy[0].playerController.attackType == "open")
+            if (selectManager.selectedArmy[0].playerController != null)
             {
-                fireAIIcon.sprite = fireAIIconInactive;
-                selectManager.selectedArmy[0].playerController.attackType = "hold";
+                if (selectManager.selectedArmy[0].playerController.attackType == "open")
+                {
+                    fireAIIcon.sprite = fireAIIconInactive;
+                    selectManager.selectedArmy[0].playerController.attackType = "hold";
+                }
+                else
+                {
+                    fireAIIcon.sprite = fireAIIconActive;
+                    selectManager.selectedArmy[0].playerController.attackType = "open";
+                }
             }
-            else
+            else if (selectManager.selectedArmy[0].tankController != null)
             {
-                fireAIIcon.sprite = fireAIIconActive;
-                selectManager.selectedArmy[0].playerController.attackType = "open";
+                if (selectManager.selectedArmy[0].tankController.attackType == "open")
+                {
+                    fireAIIcon.sprite = fireAIIconInactive;
+                    selectManager.selectedArmy[0].tankController.attackType = "hold";
+                }
+                else
+                {
+                    fireAIIcon.sprite = fireAIIconActive;
+                    selectManager.selectedArmy[0].tankController.attackType = "open";
+                }
             }
         }
     }
@@ -170,15 +187,31 @@ public class UIController : MonoBehaviour
     {
         if (selectManager.selectedArmy.Any())
         {
-            if (selectManager.selectedArmy[0].playerController.movementType == "free")
+            if (selectManager.selectedArmy[0].playerController != null)
             {
-                moveAIIcon.sprite = moveAIIconInactive;
-                selectManager.selectedArmy[0].playerController.movementType = "hold";
+                if (selectManager.selectedArmy[0].playerController.movementType == "free")
+                {
+                    moveAIIcon.sprite = moveAIIconInactive;
+                    selectManager.selectedArmy[0].playerController.movementType = "hold";
+                }
+                else
+                {
+                    moveAIIcon.sprite = moveAIIconActive;
+                    selectManager.selectedArmy[0].playerController.movementType = "free";
+                }
             }
-            else
+            else if (selectManager.selectedArmy[0].tankController != null)
             {
-                moveAIIcon.sprite = moveAIIconActive;
-                selectManager.selectedArmy[0].playerController.movementType = "free";
+                if (selectManager.selectedArmy[0].tankController.movementType == "free")
+                {
+                    moveAIIcon.sprite = moveAIIconInactive;
+                    selectManager.selectedArmy[0].tankController.movementType = "hold";
+                }
+                else
+                {
+                    moveAIIcon.sprite = moveAIIconActive;
+                    selectManager.selectedArmy[0].tankController.movementType = "free";
+                }
             }
         }
     }
@@ -189,7 +222,10 @@ public class UIController : MonoBehaviour
         {
             isActiveAttack = true;
             attackIcon.sprite = attackIconActive;
-            selectManager.selectedArmy[0].playerController.cursorSwitcher.ChangeType("aim");
+            if (selectManager.selectedArmy[0].playerController != null)
+                selectManager.selectedArmy[0].playerController.cursorSwitcher.ChangeType("aim");
+            else if (selectManager.selectedArmy[0].tankController != null)
+                selectManager.selectedArmy[0].tankController.cursorSwitcher.ChangeType("aim");
         }
     }
 
@@ -199,7 +235,10 @@ public class UIController : MonoBehaviour
         {
             isActiveRotate = true;
             rotateIcon.sprite = rotateIconActive;
-            selectManager.selectedArmy[0].playerController.cursorSwitcher.ChangeType("rotate");
+            if (selectManager.selectedArmy[0].playerController != null)
+                selectManager.selectedArmy[0].playerController.cursorSwitcher.ChangeType("rotate");
+            else if (selectManager.selectedArmy[0].tankController != null)
+                selectManager.selectedArmy[0].tankController.cursorSwitcher.ChangeType("rotate");
         }
     }
 
@@ -220,7 +259,10 @@ public class UIController : MonoBehaviour
                 {
                     attackUse = true;
                     attackIcon.sprite = attackIconInactive;
-                    playerWithCommand = selectManager.selectedArmy[0].playerController;
+                    if (selectManager.selectedArmy[0].playerController != null)
+                        playerWithCommand = selectManager.selectedArmy[0].playerController;
+                    else if (selectManager.selectedArmy[0].tankController != null)
+                        tankWithCommand = selectManager.selectedArmy[0].tankController;
 
                     // isActiveAttack = false;
                 } 
@@ -228,7 +270,10 @@ public class UIController : MonoBehaviour
                 {
                     rotateUse = true;
                     rotateIcon.sprite = rotateIconInactive;
-                    playerWithCommand = selectManager.selectedArmy[0].playerController;
+                    if (selectManager.selectedArmy[0].playerController != null)
+                        playerWithCommand = selectManager.selectedArmy[0].playerController;
+                    else if (selectManager.selectedArmy[0].tankController != null)
+                        tankWithCommand = selectManager.selectedArmy[0].tankController;
 
                     // isActiveRotate = false;
                 }
@@ -237,17 +282,36 @@ public class UIController : MonoBehaviour
 
         if (attackUse)
         {
-            var spreadSize = (playerWithCommand.effectiveDistance / playerWithCommand.currentSpread - playerWithCommand.firingAimDecrease * playerWithCommand.currentSpread);
+            float spreadSize;
+            if (selectManager.selectedArmy[0].playerController != null)
+                spreadSize = playerWithCommand.effectiveDistance / playerWithCommand.currentSpread - playerWithCommand.firingAimDecrease * playerWithCommand.currentSpread;
+            else // if (selectManager.selectedArmy[0].tankController != null)
+                spreadSize = tankWithCommand.currentWeapon.effectiveDistance - tankWithCommand.firingAimDecrease;
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
+            
             if (Physics.Raycast(ray, out hit, 1000))
             {
-                playerWithCommand.Aiming(hit.point, spreadSize, false);
+                if (selectManager.selectedArmy[0].playerController != null)
+                {
+                    playerWithCommand.Aiming(hit.point, spreadSize, false);
+                    StartCoroutine(activeAttackOff(0.1f));
+                    if (!attackWasCalled)
+                        StartCoroutine(makeShot(spreadSize, 0.3f));
+                }
+                else if (selectManager.selectedArmy[0].tankController != null)
+                {
+                    tankWithCommand.Rotate(hit.point);
+                    StartCoroutine(activeAttackOff(1f));
+                    if (!attackWasCalled)
+                        StartCoroutine(makeShot(spreadSize, 0.7f));
+                }
             }
-            if (!attackWasCalled)
-                StartCoroutine(makeShot(spreadSize, 0.3f));
-            StartCoroutine(activeAttackOff(0.1f));
+            
             attackWasCalled = true;
+
+            if (selectManager.selectedArmy[0].tankController != null)
+                selectManager.selectedArmy[0].tankController.cursorSwitcher.ChangeType("default");
         }
 
         if (rotateUse)
@@ -256,9 +320,21 @@ public class UIController : MonoBehaviour
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit, 1000))
             {
-                playerWithCommand.Rotate(hit.point);
+                if (selectManager.selectedArmy[0].playerController != null)
+                {
+                    playerWithCommand.Rotate(hit.point);
+                    StartCoroutine(activeRotateOff(0.2f));
+                }
+                    
+                else if (selectManager.selectedArmy[0].tankController != null)
+                {
+                    tankWithCommand.Rotate(hit.point);
+                    selectManager.selectedArmy[0].tankController.cursorSwitcher.ChangeType("default");
+                    StartCoroutine(activeRotateOff(1f));
+                }
+                    
             }
-            StartCoroutine(activeRotateOff(0.2f));
+                
         }
     }
 
@@ -280,7 +356,11 @@ public class UIController : MonoBehaviour
     public IEnumerator makeShot(float spreadSize, float timeToWait)
     {
         yield return new WaitForSeconds(timeToWait);
-        selectManager.selectedArmy[0].playerController.Shoot(spreadSize, false);
+        if (selectManager.selectedArmy[0].playerController != null)
+            playerWithCommand.Shoot(spreadSize, false);
+        else if (selectManager.selectedArmy[0].tankController != null)
+            tankWithCommand.ShootMainGun(spreadSize, false, tankWithCommand.mainGun);
+        
     }
 
     public void SetCurrentValues()
@@ -336,7 +416,25 @@ public class UIController : MonoBehaviour
     {
         if (selectManager.selectedArmy.Any())
         {
-            selectManager.selectedArmy[0].playerController.Reload(true);
+            if (selectManager.selectedArmy[0].playerController != null)
+            {
+                selectManager.selectedArmy[0].playerController.Reload(true);
+            } else if (selectManager.selectedArmy[0].tankController != null)
+            {
+                var tankController = selectManager.selectedArmy[0].tankController;
+                if (ReferenceEquals(tankController.currentWeapon, tankController.mainGun))
+                {
+                    tankController.ReloadMainGun(true, tankController.currentWeapon);
+                }
+                else
+                {
+                    if (!tankController.mgunOnReload)
+                    {
+                        tankController.ReloadMgun(true, tankController.currentWeapon);
+                    }
+                }
+            }
+            
         }
     }
 
@@ -344,10 +442,17 @@ public class UIController : MonoBehaviour
     {
         if (selectManager.selectedArmy.Any())
         {
-            var playerController = selectManager.selectedArmy[0].playerController;
-            playerController.agent.ResetPath();
-            playerController.TurnOffAiming();
-            playerController.TurnOffFiring();
+            if (selectManager.selectedArmy[0].playerController != null)
+            {
+                var playerController = selectManager.selectedArmy[0].playerController;
+                playerController.agent.ResetPath();
+                playerController.TurnOffAiming();
+                playerController.TurnOffFiring();
+            }
+            else if (selectManager.selectedArmy[0].tankController != null)
+            {
+                selectManager.selectedArmy[0].tankController.agent.ResetPath();
+            }
         }
     }
 

@@ -1772,7 +1772,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   turretRig: {fileID: 5118976172851731217}
-  turretRigidbody: {fileID: 3824887734471561756}
+  turretRigidbody: {fileID: 0}
   turretCollider: {fileID: 8404823971346862878}
   mantletCollider: {fileID: 7476772993443556584}
   gunCollider: {fileID: 1173697477216322807}
@@ -2365,7 +2365,6 @@ GameObject:
   - component: {fileID: 93204100965103789}
   - component: {fileID: 6862699497629982028}
   - component: {fileID: 7271875585529319281}
-  - component: {fileID: 3824887734471561756}
   - component: {fileID: 8404823971346862878}
   m_Layer: 0
   m_Name: Panzer_II_F_Turret
@@ -2440,33 +2439,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!54 &3824887734471561756
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5109649385552441598}
-  serializedVersion: 4
-  m_Mass: 3000
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!65 &8404823971346862878
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -2882,8 +2854,6 @@ GameObject:
   - component: {fileID: 5305506977900625356}
   - component: {fileID: 6671558409258164853}
   - component: {fileID: 6081918163845293573}
-  - component: {fileID: 5880905681524876547}
-  - component: {fileID: 2386105868693864801}
   m_Layer: 0
   m_Name: Corpus
   m_TagString: Untagged
@@ -2977,47 +2947,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.1504884, y: 1.3691423, z: 4.585374}
   m_Center: {x: 0.016842604, y: 0.6809771, z: -0.12663758}
---- !u!54 &5880905681524876547
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5486912637985807207}
-  serializedVersion: 4
-  m_Mass: 8000
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 1
-  m_Interpolate: 0
-  m_Constraints: 4
-  m_CollisionDetection: 0
---- !u!114 &2386105868693864801
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5486912637985807207}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: faab0a08d59984848881fa8cc396b808, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  UIController: {fileID: 0}
-  tankController: {fileID: 2893000763620306329}
 --- !u!1 &5989107529433212566
 GameObject:
   m_ObjectHideFlags: 0
@@ -3114,7 +3043,7 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 116
   m_CollisionDetection: 0
 --- !u!114 &5302367561492462255
 MonoBehaviour:
@@ -3135,6 +3064,7 @@ MonoBehaviour:
   angle: 40
   seeEnemy: 0
   currentTarget: {fileID: 0}
+  currentTankTarget: {fileID: 0}
 --- !u!114 &2893000763620306329
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3244,7 +3174,7 @@ NavMeshAgent:
   m_GameObject: {fileID: 5989107529433212566}
   m_Enabled: 1
   m_AgentTypeID: 0
-  m_Radius: 2.9900577
+  m_Radius: 1.04
   m_Speed: 3.5
   m_Acceleration: 8
   avoidancePriority: 50
@@ -3253,7 +3183,7 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 4.0077543
+  m_Height: 1.97
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
