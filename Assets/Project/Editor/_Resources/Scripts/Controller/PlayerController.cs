@@ -468,7 +468,7 @@ public class PlayerController : MonoBehaviour
             if (Physics.Raycast(ray, out hit, 100))
             {
                 TankController tank = hit.collider.GetComponentInParent<TankController>();
-                if (tank != null)
+                if (tank != null && tank.isActiveAndEnabled)
                 {
                     var crewmate = tank.getAnyCrewmate();
                     if (tank.getFreeCrewRole() >= 0)

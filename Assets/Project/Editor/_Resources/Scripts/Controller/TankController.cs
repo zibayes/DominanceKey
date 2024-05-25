@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 using VariableCode.Cursor;
+using static Codice.Client.Common.Connection.AskCredentialsToUser;
 
 public class TankController : MonoBehaviour
 {
@@ -243,18 +244,21 @@ public class TankController : MonoBehaviour
         // Control commands
         if (selection.selectedSprite.enabled || selection.currentSprite.enabled)
         {
+            if (cursorSwitcher.current.objectIndex == 6)
+                cursorSwitcher.ChangeType("default");
+
             // Start reload
             if (Input.GetKey(KeyCode.R))
             {
-                if (currentWeapon == mainGun)
+                if (ReferenceEquals(currentWeapon, mainGun))
                 {
-                    ReloadMainGun(true);
+                    ReloadMainGun(true, currentWeapon);
                 }
                 else
                 {
                     if (!mgunOnReload)
                     {
-                        ReloadMgun(true);
+                        ReloadMgun(true, currentWeapon);
                     }
                 }
             }
@@ -392,13 +396,13 @@ public class TankController : MonoBehaviour
                         // Shoot
                         if (Input.GetMouseButton(0) && !selectManager.IsMouseOverUI())
                         {
-                            if (currentWeapon == mainGun)
+                            if (ReferenceEquals(currentWeapon, mainGun))
                             {
-                                ShootMainGun(spreadSize, true);
+                                ShootMainGun(spreadSize, true, currentWeapon);
                             }
                             else
                             {
-                                ShootMgun(spreadSize, true);
+                                ShootMgun(spreadSize, true, currentWeapon);
                             }
                         }
                     }
@@ -516,7 +520,7 @@ public class TankController : MonoBehaviour
         }
     }
 
-    public bool ShootMainGun(float spreadSize, bool manualControl)
+    public bool ShootMainGun(float spreadSize, bool manualControl, InventoryItem weapon)
     {
         bool thereWasShot = false;
         if (mainGunLoaded)
@@ -533,24 +537,24 @@ public class TankController : MonoBehaviour
                 gunAnimator.SetTrigger("Fire");
 
             firingAimDecrease += mainGunAimDecrease;
-            audioSourceShoot.PlayOneShot(currentWeapon.shotSFX[Random.Range(0, currentWeapon.shotSFX.Length)]); 
+            audioSourceShoot.PlayOneShot(weapon.shotSFX[Random.Range(0, weapon.shotSFX.Length)]); 
             muzzleFlash.Play();
-            ParticleSystem flash = Instantiate(muzzleFlash, currentWeapon.model.transform.position, currentWeapon.model.transform.rotation);
+            ParticleSystem flash = Instantiate(muzzleFlash, weapon.model.transform.position, weapon.model.transform.rotation);
             Destroy(flash, 1f);
 
             var spread = 60f / spreadSize;
-            Ray shootRay = new Ray(currentWeapon.model.transform.position, Quaternion.Euler(0, Random.Range(-spread, spread), Random.Range(-spread, spread)) * currentWeapon.model.transform.forward);
-            MissaleTracer currentBulletTracer = Instantiate(missaleTracer, currentWeapon.model.transform.position, Quaternion.LookRotation(shootRay.direction));
+            Ray shootRay = new Ray(weapon.model.transform.position, Quaternion.Euler(0, Random.Range(-spread, spread), Random.Range(-spread, spread)) * weapon.model.transform.forward);
+            MissaleTracer currentBulletTracer = Instantiate(missaleTracer, weapon.model.transform.position, Quaternion.LookRotation(shootRay.direction));
             currentBulletTracer.selfRigidbody.AddForce(shootRay.direction.normalized * 100f, ForceMode.Impulse);
             currentBulletTracer.currentPlayer = selection.player;
             currentBulletTracer.manualControl = manualControl;
             mainGunLoaded = false;
-            ReloadMainGun(manualControl);
+            ReloadMainGun(manualControl, weapon);
         }
         return thereWasShot;
     }
 
-    public void ReloadMainGun(bool manualControl)
+    public void ReloadMainGun(bool manualControl, InventoryItem weapon)
     {
         if (getCharger() == null)
             setCharger(getCrewmateWithLowestPriority());
@@ -560,7 +564,7 @@ public class TankController : MonoBehaviour
             // Take ammo from inventory and load it to the gun
             for (int i = 0; i < selection.inventory_items.Count; i++)
             {
-                if (selection.inventory_items[i].type == currentWeapon.ammoType)
+                if (selection.inventory_items[i].type == weapon.ammoType)
                 {
                     if (selection.inventory_items[i].IsStackable)
                     {
@@ -598,26 +602,26 @@ public class TankController : MonoBehaviour
                     cursorSwitcher.ChangeType("reload");
                 }
                 mainGunOnReload = true;
-                reloadOver = Time.time + currentWeapon.reloadTime;
-                audioSourceShoot.PlayOneShot(currentWeapon.reloadSFX);
+                reloadOver = Time.time + weapon.reloadTime;
+                audioSourceShoot.PlayOneShot(weapon.reloadSFX);
             }
         }
     }
 
-    public bool ShootMgun(float spreadSize, bool manualControl)
+    public bool ShootMgun(float spreadSize, bool manualControl, InventoryItem weapon)
     {
         bool thereWasShot = false;
-        if (Time.time > nextShoot && currentWeapon.currentAmmo > 0)
+        if (Time.time > nextShoot && weapon.currentAmmo > 0)
         {
             thereWasShot = true;
             makingNoise = true;
             makingNoiseTime = Time.time + makingNoiseCooldown;
 
-            currentWeapon.currentAmmo--;
+            weapon.currentAmmo--;
 
             if (IsThisCurrentChar())
             {
-                UIController.grenadeCount.text = currentWeapon.currentAmmo + "/" + currentWeapon.magSize;
+                UIController.grenadeCount.text = weapon.currentAmmo + "/" + weapon.magSize;
                 if (inventory.activeSelf)
                     inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
             }
@@ -626,50 +630,50 @@ public class TankController : MonoBehaviour
                 cursorSwitcher.ChangeType("fire");
             }
 
-            nextShoot = Time.time + 1f / currentWeapon.fireRate;
-            firingAimDecrease += currentWeapon.AimDecrease;
-            audioSourceShoot.PlayOneShot(currentWeapon.shotSFX[Random.Range(0, currentWeapon.shotSFX.Length)]);
+            nextShoot = Time.time + 1f / weapon.fireRate;
+            firingAimDecrease += weapon.AimDecrease;
+            audioSourceShoot.PlayOneShot(weapon.shotSFX[Random.Range(0, weapon.shotSFX.Length)]);
             muzzleFlash.Play();
-            ParticleSystem flash = Instantiate(muzzleFlash, currentWeapon.model.transform.position, currentWeapon.model.transform.rotation);
+            ParticleSystem flash = Instantiate(muzzleFlash, weapon.model.transform.position, weapon.model.transform.rotation);
             Destroy(flash, 1f);
 
             var spread = 60f / spreadSize;
-            Ray shootRay = new Ray(currentWeapon.model.transform.position, Quaternion.Euler(0, Random.Range(-spread, spread), Random.Range(-spread, spread)) * currentWeapon.model.transform.forward);
-            BulletTracer currentBulletTracer = Instantiate(bulletTracer, currentWeapon.model.transform.position, Quaternion.LookRotation(shootRay.direction));
-            currentBulletTracer.selfRigidbody.AddForce(shootRay.direction.normalized * currentWeapon.bulletSpeed, ForceMode.Impulse);
-            currentBulletTracer.damage = currentWeapon.damage;
-            currentBulletTracer.distanceKoef = currentWeapon.distanceKoef;
-            currentBulletTracer.startPoint = currentWeapon.model.transform.position;
+            Ray shootRay = new Ray(weapon.model.transform.position, Quaternion.Euler(0, Random.Range(-spread, spread), Random.Range(-spread, spread)) * weapon.model.transform.forward);
+            BulletTracer currentBulletTracer = Instantiate(bulletTracer, weapon.model.transform.position, Quaternion.LookRotation(shootRay.direction));
+            currentBulletTracer.selfRigidbody.AddForce(shootRay.direction.normalized * weapon.bulletSpeed, ForceMode.Impulse);
+            currentBulletTracer.damage = weapon.damage;
+            currentBulletTracer.distanceKoef = weapon.distanceKoef;
+            currentBulletTracer.startPoint = weapon.model.transform.position;
             currentBulletTracer.currentPlayer = selection.player;
             currentBulletTracer.manualControl = manualControl;
         }
         return thereWasShot;
     }
 
-    public void ReloadMgun(bool manualControl)
+    public void ReloadMgun(bool manualControl, InventoryItem weapon)
     {
         if (getGunner() == null)
             setGunner(getCrewmateWithLowestPriority());
         if (getGunner() != null)
         {
-            if (currentWeapon.currentAmmo < currentWeapon.magSize)
+            if (weapon.currentAmmo < weapon.magSize)
             {
                 bool haveAmmo = false;
                 ammoNeed = 0;
                 List<int> indexes = new List<int>();
-                sum = currentWeapon.currentAmmo;
+                sum = weapon.currentAmmo;
                 // Check ammo count
                 for (int i = 0; i < selection.inventory_items.Count; i++)
                 {
-                    if (selection.inventory_items[i].type == currentWeapon.ammoType)
+                    if (selection.inventory_items[i].type == weapon.ammoType)
                     {
                         indexes.Add(i);
                         if (selection.inventory_items[i].IsStackable)
                         {
-                            if (sum + selection.inventory_items[i].currentAmount >= currentWeapon.magSize)
+                            if (sum + selection.inventory_items[i].currentAmount >= weapon.magSize)
                             {
-                                ammoNeed += currentWeapon.magSize - sum;
-                                sum = currentWeapon.magSize;
+                                ammoNeed += weapon.magSize - sum;
+                                sum = weapon.magSize;
                                 haveAmmo = true;
                                 break;
                             }
@@ -719,8 +723,8 @@ public class TankController : MonoBehaviour
                     }
 
                     mgunOnReload = true;
-                    reloadOver = Time.time + currentWeapon.reloadTime;
-                    audioSourceShoot.PlayOneShot(currentWeapon.reloadSFX);
+                    reloadOver = Time.time + weapon.reloadTime;
+                    audioSourceShoot.PlayOneShot(weapon.reloadSFX);
                 }
             }
         }

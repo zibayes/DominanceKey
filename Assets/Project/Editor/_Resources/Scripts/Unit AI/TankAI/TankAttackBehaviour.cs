@@ -25,8 +25,8 @@ public class TankAttackBehaviour : StateMachineBehaviour
             if (tankController.tankVision.currentTarget != null && tankController.tankVision.seeEnemy)
             {
                 float distance = Vector3.Distance(tankController.transform.position, tankController.tankVision.currentTarget.transform.position);
-                var currentWeapon = tankController.currentWeapon;
-                if ((tankController.movementType == "free" && distance >= currentWeapon.effectiveDistance) || (tankController.movementType == "hold" && distance >= currentWeapon.effectiveDistance * 1.5f))
+                if ((tankController.movementType == "free" && distance >= tankController.currentWeapon.effectiveDistance) || 
+                    (tankController.movementType == "hold" && distance >= tankController.currentWeapon.effectiveDistance * 1.5f))
                 {
                     animator.SetBool("AttackAI", false);
                     animator.SetBool("ChaseAI", true);
@@ -37,41 +37,42 @@ public class TankAttackBehaviour : StateMachineBehaviour
                     {
                         if (tankController.attackType != "hold")
                         {
-                            var currentOffset = aimingOffsetStandTarget;
-                            if (tankController.tankVision.currentTarget.animator.GetBool("Sit"))
-                                currentOffset = aimingOffsetSitTarget;
-                            else if (tankController.tankVision.currentTarget.animator.GetBool("Lie"))
-                                currentOffset = aimingOffsetLieTarget;
-                            tankController.Rotate(tankController.tankVision.currentTarget.transform.position + currentOffset);
-
-                            if (burstSize == 0)
+                            if (tankController.getGunner() == null)
+                                tankController.setGunner(tankController.getCrewmateWithLowestPriority());
+                            if (tankController.getGunner() != null)
                             {
-                                burstSize = tankController.pairedMgun.burstSize + Random.Range(-tankController.pairedMgun.burstSizeDelta, tankController.pairedMgun.burstSizeDelta);
-                                nextBurstTime = tankController.pairedMgun.nextBurstTime + Random.Range(-tankController.pairedMgun.nextBurstTimeDelta, tankController.pairedMgun.nextBurstTimeDelta);
-                                nextBurst = Time.time + nextBurstTime;
-                            }
+                                var currentOffset = aimingOffsetStandTarget;
+                                if (tankController.tankVision.currentTarget.animator.GetBool("Sit"))
+                                    currentOffset = aimingOffsetSitTarget;
+                                else if (tankController.tankVision.currentTarget.animator.GetBool("Lie"))
+                                    currentOffset = aimingOffsetLieTarget;
+                                tankController.Rotate(tankController.tankVision.currentTarget.transform.position + currentOffset);
 
-                            tankController.currentWeapon = tankController.mainGun;
-                            spreadSize = currentWeapon.effectiveDistance / tankController.spreadSize - tankController.firingAimDecrease * tankController.spreadSize;
-                            if (tankController.ShootMainGun(spreadSize, false))
-                            {
-                                tankController.ReloadMainGun(false);
-                            }
-
-                            if (nextBurst < Time.time && burstSize > 0)
-                            {
-                                tankController.currentWeapon = tankController.pairedMgun;
-                                spreadSize = currentWeapon.effectiveDistance / tankController.spreadSize - tankController.firingAimDecrease * tankController.spreadSize;
-                                if (tankController.ShootMgun(spreadSize, false))
+                                if (burstSize == 0)
                                 {
-                                    burstSize--;
+                                    burstSize = tankController.pairedMgun.burstSize + Random.Range(-tankController.pairedMgun.burstSizeDelta, tankController.pairedMgun.burstSizeDelta);
+                                    nextBurstTime = tankController.pairedMgun.nextBurstTime + Random.Range(-tankController.pairedMgun.nextBurstTimeDelta, tankController.pairedMgun.nextBurstTimeDelta);
+                                    nextBurst = Time.time + nextBurstTime;
                                 }
-                            }
 
-                            if (tankController.pairedMgun.currentAmmo == 0)
-                            {
-                                tankController.ReloadMgun(false);
-                                burstSize = 0;
+                                spreadSize = tankController.mainGun.effectiveDistance - tankController.firingAimDecrease;
+
+                                tankController.ShootMainGun(spreadSize, false, tankController.mainGun);
+
+                                if (nextBurst < Time.time && burstSize > 0)
+                                {
+                                    spreadSize = tankController.pairedMgun.effectiveDistance - tankController.firingAimDecrease;
+                                    if (tankController.ShootMgun(spreadSize, false, tankController.pairedMgun))
+                                    {
+                                        burstSize--;
+                                    }
+                                }
+                           
+                                if (tankController.pairedMgun.currentAmmo == 0)
+                                {
+                                    tankController.ReloadMgun(false, tankController.pairedMgun);
+                                    burstSize = 0;
+                                }
                             }
                         }
                     }

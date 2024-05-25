@@ -14,11 +14,11 @@ public class TankIdleBehabiour : StateMachineBehaviour
             {
                 if (ReferenceEquals(tankController.currentWeapon, tankController.mainGun))
                 {
-                    tankController.ReloadMainGun(false);
+                    tankController.ReloadMainGun(false, tankController.mainGun);
                 }
                 else if (tankController.currentWeapon.currentAmmo <= tankController.currentWeapon.magSize * 0.5f)
                 {
-                    tankController.ReloadMgun(false);
+                    tankController.ReloadMgun(false, tankController.pairedMgun);
                 }
             }
         }

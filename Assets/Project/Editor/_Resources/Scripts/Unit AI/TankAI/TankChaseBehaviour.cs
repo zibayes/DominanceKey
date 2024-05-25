@@ -22,7 +22,12 @@ public class TankChaseBehaviour : StateMachineBehaviour
                     {
                         if (tankController.agent.destination != tankController.tankVision.currentTarget.transform.position)
                         {
-                            tankController.MoveToPoint(tankController.tankVision.currentTarget.transform.position);
+                            if (tankController.getDriver() == null)
+                                tankController.setDriver(tankController.getCrewmateWithLowestPriority());
+                            if (tankController.getDriver() != null)
+                            {
+                                tankController.MoveToPoint(tankController.tankVision.currentTarget.transform.position);
+                            }
                         }
                     }
                     if (tankController.attackType != "hold")

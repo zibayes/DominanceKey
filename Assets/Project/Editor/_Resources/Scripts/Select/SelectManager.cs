@@ -320,10 +320,10 @@ public class SelectManager : MonoBehaviour
         specialization.text = currentChar.specialization;
 
         weaponSelect.options.Clear();
-        weaponSelect.options.Add(new Dropdown.OptionData("", emptyImage));
 
         if (currentChar.playerController != null)
         {
+            weaponSelect.options.Add(new Dropdown.OptionData("", emptyImage));
             if (currentChar.currentWeapon != null)
             {
                 weaponSelect.captionImage.sprite = currentChar.currentWeapon.image;
