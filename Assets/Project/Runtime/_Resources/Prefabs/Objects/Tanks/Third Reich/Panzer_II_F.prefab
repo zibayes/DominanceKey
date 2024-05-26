@@ -3027,7 +3027,7 @@ Rigidbody:
   m_GameObject: {fileID: 5989107529433212566}
   serializedVersion: 4
   m_Mass: 11000
-  m_Drag: 0
+  m_Drag: 3
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 1, y: 1, z: 1}
@@ -3102,9 +3102,6 @@ MonoBehaviour:
   spreadSize: 0
   firingAimDecrease: 0
   firingAimDecreaseMax: 8
-  mainGunLoaded: 1
-  mainGunOnReload: 0
-  mainGunAimDecrease: 10
   nextShoot: 0
   crewAmount: 3
   crew:

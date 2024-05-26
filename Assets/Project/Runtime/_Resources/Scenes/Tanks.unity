@@ -440,6 +440,10 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6668156916638672326, guid: 89c4e819ebcb71943bab2aa065ae71a0, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9048252660249549148, guid: 89c4e819ebcb71943bab2aa065ae71a0, type: 3}
       propertyPath: player
       value: 1
@@ -4700,6 +4704,10 @@ PrefabInstance:
       propertyPath: crew.Array.data[3]
       value: 
       objectReference: {fileID: 4645756568054057103, guid: 8b90e261cea139241adbf324883f9b1d, type: 3}
+    - target: {fileID: 4643985408059813444, guid: 1248be1dc5a407847b71a9c8604b713f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5488473099005454847, guid: 1248be1dc5a407847b71a9c8604b713f, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -8201,6 +8209,10 @@ PrefabInstance:
       propertyPath: crew.Array.data[3]
       value: 
       objectReference: {fileID: 4645756568054057103, guid: 8b90e261cea139241adbf324883f9b1d, type: 3}
+    - target: {fileID: 4643985408059813444, guid: 1248be1dc5a407847b71a9c8604b713f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5488473099005454847, guid: 1248be1dc5a407847b71a9c8604b713f, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -13072,6 +13084,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5302367561492462255, guid: 590ab0d6366e69f4c8fff6b2c311e059, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5600251704358645440, guid: 590ab0d6366e69f4c8fff6b2c311e059, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -16108,6 +16124,10 @@ PrefabInstance:
     - target: {fileID: 457144422260773621, guid: db0ba8a31a1c6a245935f107499b4a55, type: 3}
       propertyPath: m_Name
       value: M4A3(75)_Sherman
+      objectReference: {fileID: 0}
+    - target: {fileID: 3133123070794794311, guid: db0ba8a31a1c6a245935f107499b4a55, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4346528109708307282, guid: db0ba8a31a1c6a245935f107499b4a55, type: 3}
       propertyPath: crew.Array.data[0]
