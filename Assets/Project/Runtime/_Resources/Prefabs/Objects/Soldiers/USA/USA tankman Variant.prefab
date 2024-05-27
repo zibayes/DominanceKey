@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1001 &5422853175097285097
+--- !u!1001 &7540764936460167812
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -12,10 +12,6 @@ PrefabInstance:
       propertyPath: portrait
       value: 
       objectReference: {fileID: 21300000, guid: 5b3c2c71b35803548ac901d82137874d, type: 3}
-    - target: {fileID: 425123620672703696, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 425123620672703696, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
       propertyPath: specialization
       value: "\u0422\u0430\u043D\u043A\u0438\u0441\u0442"
@@ -36,17 +32,9 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 808627858628481382, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
-      propertyPath: m_Enabled
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1082773627580490733, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
       propertyPath: m_Name
-      value: USA tankman Variant
-      objectReference: {fileID: 0}
-    - target: {fileID: 1082773627580490733, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
-      propertyPath: m_IsActive
-      value: 0
+      value: USA Tankman Variant
       objectReference: {fileID: 0}
     - target: {fileID: 2839575278697433208, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
       propertyPath: m_AnchorMax.x
@@ -58,15 +46,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3998077247256907470, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -33.53
+      value: -110.40337
       objectReference: {fileID: 0}
     - target: {fileID: 3998077247256907470, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.083333336
+      value: 0.00000023841858
       objectReference: {fileID: 0}
     - target: {fileID: 3998077247256907470, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -6.11
+      value: -58.727753
       objectReference: {fileID: 0}
     - target: {fileID: 3998077247256907470, guid: 13d6e8931424f49478f77d88d766c957, type: 3}
       propertyPath: m_LocalRotation.w

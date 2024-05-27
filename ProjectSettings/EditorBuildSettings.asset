@@ -6,9 +6,18 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Project/Runtime/_Resources/Scenes/Main menu.unity
+    path: Assets/Project/Runtime/_Resources/Scenes/Main menu Demo.unity
     guid: 5364fc7e6e539c745ade51be841270e1
   - enabled: 1
+    path: Assets/Project/Runtime/_Resources/Scenes/TanksDemo.unity
+    guid: 03f0cd89b75cac6409217d9a0d7e124f
+  - enabled: 1
+    path: Assets/Project/Runtime/_Resources/Scenes/TanksBattle.unity
+    guid: 0ac553e6f67dea84892ec18c7df51f52
+  - enabled: 0
+    path: Assets/Project/Runtime/_Resources/Scenes/Main menu.unity
+    guid: da59b1d7a060ec942946151b762fe4f2
+  - enabled: 0
     path: Assets/Project/Runtime/_Resources/Scenes/SIMPLE.unity
     guid: f572f316080b0a3449ebb9b52cc0a5dc
   m_configObjects: {}

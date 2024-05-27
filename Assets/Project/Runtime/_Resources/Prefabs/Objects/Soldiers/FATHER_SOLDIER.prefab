@@ -3079,6 +3079,8 @@ MonoBehaviour:
   lineRenderer: {fileID: 2301038679275776530, guid: 5ac55147a70d65c4081562cbb465a5ed, type: 3}
   grenadeTrajectorySphere: {fileID: 4654229813363653959, guid: 5bb52e85fb4e65d4f800434c0502542e, type: 3}
   rightMouseButtonTaps: 0
+  vehicleWantToBoardOn: {fileID: 0}
+  placeInTank: 0
 --- !u!114 &4880055429370810919
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3112,7 +3114,7 @@ NavMeshAgent:
   m_Height: 2
   m_BaseOffset: 0
   m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4
+  m_ObstacleAvoidanceType: 0
 --- !u!82 &3830329098654412973
 AudioSource:
   m_ObjectHideFlags: 0
@@ -6573,6 +6575,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerController: {fileID: 3443808333863231535}
+  tankController: {fileID: 0}
   selfRigidbody: {fileID: 2288553476422392233}
   unselectedSprite: {fileID: 3753312015493514808}
   selectedSprite: {fileID: 1175615294794679020}
@@ -7476,6 +7479,8 @@ MonoBehaviour:
   currentAmmo: 0
   AimDecrease: 0.6
   reloadTime: 2.4
+  onReload: 0
+  reloadOver: 0
   damage: 27
   burstSize: 0
   burstSizeDelta: 0

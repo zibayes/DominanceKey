@@ -6,7 +6,6 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 using VariableCode.Cursor;
-using static Codice.Client.Common.Connection.AskCredentialsToUser;
 
 public class TankController : MonoBehaviour
 {
@@ -213,34 +212,45 @@ public class TankController : MonoBehaviour
             }
         }
 
-        if (Time.time > mainGun.reloadOver && mainGun.onReload)
+        if (mainGun != null)
         {
-            mainGun.currentAmmo = mainGun.magSize;
-            mainGun.onReload = false;
-        }
-        if (pairedMgun.onReload && Time.time > pairedMgun.reloadOver)
-        {
-            // pairedMgun.currentAmmo = sum;
-            if (IsThisCurrentChar())
+            if (Time.time > mainGun.reloadOver && mainGun.onReload)
             {
-                if (ReferenceEquals(currentWeapon, pairedMgun))
-                    UIController.grenadeCount.text = currentWeapon.currentAmmo + "/" + currentWeapon.magSize;
-                if (inventory.activeSelf)
-                    inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
+                mainGun.currentAmmo = mainGun.magSize;
+                mainGun.onReload = false;
+                if (IsThisCurrentChar())
+                    UIController.ammoCount.text = mainGun.currentAmmo + "/" + mainGun.magSize;
             }
-            pairedMgun.onReload = false;
         }
-        if (courseMgun.onReload && Time.time > courseMgun.reloadOver)
+        if (pairedMgun != null)
         {
-            // courseMgun.currentAmmo = sum;
-            if (IsThisCurrentChar())
+            if (pairedMgun.onReload && Time.time > pairedMgun.reloadOver)
             {
-                if (ReferenceEquals(currentWeapon, courseMgun))
-                    UIController.grenadeCount.text = currentWeapon.currentAmmo + "/" + currentWeapon.magSize;
-                if (inventory.activeSelf)
-                    inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
+                // pairedMgun.currentAmmo = sum;
+                if (IsThisCurrentChar())
+                {
+                    if (ReferenceEquals(currentWeapon, pairedMgun))
+                        UIController.grenadeCount.text = currentWeapon.currentAmmo + "/" + currentWeapon.magSize;
+                    if (inventory.activeSelf)
+                        inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
+                }
+                pairedMgun.onReload = false;
             }
-            courseMgun.onReload = false;
+        }
+        if (courseMgun != null)
+        {
+            if (courseMgun.onReload && Time.time > courseMgun.reloadOver)
+            {
+                // courseMgun.currentAmmo = sum;
+                if (IsThisCurrentChar())
+                {
+                    if (ReferenceEquals(currentWeapon, courseMgun))
+                        UIController.grenadeCount.text = currentWeapon.currentAmmo + "/" + currentWeapon.magSize;
+                    if (inventory.activeSelf)
+                        inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
+                }
+                courseMgun.onReload = false;
+            }
         }
 
         if (selection.power <= 0f)
@@ -299,7 +309,7 @@ public class TankController : MonoBehaviour
                 cursorSwitcher.ChangeType("default");
 
             // Start reload
-            if (Input.GetKey(KeyCode.R))
+            if (Input.GetKeyDown(KeyCode.R))
             {
                 if (!currentWeapon.onReload)
                 {
@@ -345,7 +355,7 @@ public class TankController : MonoBehaviour
             // WASD Controls
             if ((Input.GetKey(KeyCode.LeftControl) || UIController.isActiveManualControl) && IsThisCurrentChar())
             {
-                if (Time.time > reloadOver)
+                if (!currentWeapon.onReload)
                 {
                     cursorSwitcher.ChangeType("aim");
                 }
@@ -574,7 +584,7 @@ public class TankController : MonoBehaviour
     public bool ShootMainGun(float spreadSize, bool manualControl, InventoryItem weapon)
     {
         bool thereWasShot = false;
-        if (mainGun.currentAmmo > 0 && !mainGun.onReload)
+        if (Time.time > nextShoot && mainGun.currentAmmo > 0 && !mainGun.onReload)
         {
             thereWasShot = true;
             makingNoise = true;
@@ -588,6 +598,8 @@ public class TankController : MonoBehaviour
                 gunAnimator.SetTrigger("Fire");
 
             weapon.currentAmmo--;
+            if (IsThisCurrentChar())
+            UIController.ammoCount.text = weapon.currentAmmo + "/" + weapon.magSize;
 
             firingAimDecrease += mainGun.AimDecrease;
             audioSourceShoot.PlayOneShot(weapon.shotSFX[Random.Range(0, weapon.shotSFX.Length)]); 
@@ -601,7 +613,9 @@ public class TankController : MonoBehaviour
             currentBulletTracer.selfRigidbody.AddForce(shootRay.direction.normalized * 100f, ForceMode.Impulse);
             currentBulletTracer.currentPlayer = selection.player;
             currentBulletTracer.manualControl = manualControl;
-            ReloadMainGun(manualControl, weapon);
+            if (weapon.currentAmmo == 0)
+                ReloadMainGun(manualControl, weapon);
+            nextShoot = Time.time + 1f / weapon.fireRate;
         }
         return thereWasShot;
     }
@@ -610,7 +624,7 @@ public class TankController : MonoBehaviour
     {
         if (getCharger() == null)
             setCharger(getCrewmateWithLowestPriority());
-        if (getCharger() != null)
+        if (getCharger() != null && weapon.currentAmmo < weapon.magSize && !weapon.onReload)
         {
             bool haveAmmo = false;
             // Take ammo from inventory and load it to the gun
@@ -897,11 +911,14 @@ public class TankController : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        PlayerController playerController = collision.gameObject.GetComponentInParent<PlayerController>();
-        if (playerController != null)
+        if (enabled && rigidbody.velocity.magnitude > 0)
         {
-            playerController.ReceiveDamage(selection.player, collision.gameObject, collision,
-                playerController.selection.maxHealth, (Input.GetKey(KeyCode.LeftControl) || UIController.isActiveManualControl) && IsThisCurrentChar());
+            PlayerController playerController = collision.gameObject.GetComponentInParent<PlayerController>();
+            if (playerController != null)
+            {
+                playerController.ReceiveDamage(selection.player, collision.gameObject, collision,
+                    playerController.selection.maxHealth, (Input.GetKey(KeyCode.LeftControl) || UIController.isActiveManualControl) && IsThisCurrentChar());
+            }
         }
     }
 
