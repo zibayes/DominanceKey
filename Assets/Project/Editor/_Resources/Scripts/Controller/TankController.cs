@@ -112,7 +112,7 @@ public class TankController : MonoBehaviour
 
     public TankVision tankVision;
 
-    void Start()
+    void Awake()
     {
         selectManager = GameObject.Find("SelectingBox").GetComponent<SelectManager>();
         inventoryManager = GameObject.Find("CanvasParent").GetComponent<SampleScene>();
@@ -613,7 +613,7 @@ public class TankController : MonoBehaviour
             currentBulletTracer.selfRigidbody.AddForce(shootRay.direction.normalized * 100f, ForceMode.Impulse);
             currentBulletTracer.currentPlayer = selection.player;
             currentBulletTracer.manualControl = manualControl;
-            if (weapon.currentAmmo == 0)
+             if (weapon.currentAmmo == 0)
                 ReloadMainGun(manualControl, weapon);
             nextShoot = Time.time + 1f / weapon.fireRate;
         }
@@ -622,54 +622,58 @@ public class TankController : MonoBehaviour
 
     public void ReloadMainGun(bool manualControl, InventoryItem weapon)
     {
-        if (getCharger() == null)
-            setCharger(getCrewmateWithLowestPriority());
-        if (getCharger() != null && weapon.currentAmmo < weapon.magSize && !weapon.onReload)
+        if (weapon.currentAmmo < weapon.magSize && !weapon.onReload)
         {
-            bool haveAmmo = false;
-            // Take ammo from inventory and load it to the gun
-            for (int i = 0; i < selection.inventory_items.Count; i++)
+            if (getCharger() == null)
+                setCharger(getCrewmateWithLowestPriority());
+            if (getCharger() != null)
             {
-                if (selection.inventory_items[i].type == weapon.ammoType)
+                bool haveAmmo = false;
+                // Take ammo from inventory and load it to the gun
+                for (int i = 0; i < selection.inventory_items.Count; i++)
                 {
-                    if (selection.inventory_items[i].IsStackable)
+                    if (selection.inventory_items[i].type == weapon.ammoType)
                     {
-                        if (selection.inventory_items[i].currentAmount == 1)
+                        if (selection.inventory_items[i].IsStackable)
+                        {
+                            if (selection.inventory_items[i].currentAmount == 1)
+                            {
+                                selection.inventory_items.RemoveAt(i);
+                                haveAmmo = true;
+                                break;
+                            }
+                            else
+                            {
+                                selection.inventory_items[i].currentAmount--;
+                                haveAmmo = true;
+                                break;
+                            }
+                        }
+                        else
                         {
                             selection.inventory_items.RemoveAt(i);
                             haveAmmo = true;
                             break;
                         }
-                        else
-                        {
-                            selection.inventory_items[i].currentAmount--;
-                            haveAmmo = true;
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        selection.inventory_items.RemoveAt(i);
-                        haveAmmo = true;
-                        break;
                     }
                 }
-            }
 
-            if (haveAmmo)
-            {
-                if (IsThisCurrentChar())
+                if (haveAmmo)
                 {
-                    if (inventory.activeSelf)
-                        inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
+                    weapon.onReload = true;
+                    weapon.reloadOver = Time.time + weapon.reloadTime;
+                    audioSourceShoot.PlayOneShot(weapon.reloadSFX);
+
+                    if (IsThisCurrentChar())
+                    {
+                        if (inventory.activeSelf)
+                            inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selection.inventory_items));
+                    }
+                    if (manualControl)
+                    {
+                        cursorSwitcher.ChangeType("reload");
+                    }
                 }
-                if (manualControl)
-                {
-                    cursorSwitcher.ChangeType("reload");
-                }
-                weapon.onReload = true;
-                weapon.reloadOver = Time.time + weapon.reloadTime;
-                audioSourceShoot.PlayOneShot(weapon.reloadSFX);
             }
         }
     }
@@ -967,7 +971,7 @@ public class TankController : MonoBehaviour
         SelectableCharacter currentChar = null;
         if (selectManager.selectedArmy.Any())
             currentChar = selectManager.selectedArmy[0];
-        return selection == currentChar;
+        return ReferenceEquals(selection, currentChar);
     }
 
     public PlayerController getDriver()
@@ -1022,10 +1026,13 @@ public class TankController : MonoBehaviour
         if (soldier != null)
             return soldier;
 
-        soldier = getGunner();
-        setGunner(null);
-        if (soldier != null)
-            return soldier;
+        if (!pairedMgun.onReload)
+        {
+            soldier = getGunner();
+            setGunner(null);
+            if (soldier != null)
+                return soldier;
+        }
 
         if (!mainGun.onReload)
         {

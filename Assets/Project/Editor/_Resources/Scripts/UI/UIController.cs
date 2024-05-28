@@ -645,7 +645,7 @@ public class UIController : MonoBehaviour
 
         if (!onAwake)
         {
-            GameObject.Find("AmmoCount").GetComponent<Text>().text = soldier.currentWeapon.currentAmmo + "/" + selectManager.selectedArmy[0].currentWeapon.magSize;
+            GameObject.Find("AmmoCount").GetComponent<Text>().text = soldier.currentWeapon.currentAmmo + "/" + soldier.currentWeapon.magSize;
             StartCoroutine(TakeWeaponOver(soldier, 1.33f));
         }
     }

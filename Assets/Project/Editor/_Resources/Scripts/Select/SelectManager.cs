@@ -332,7 +332,7 @@ public class SelectManager : MonoBehaviour
             weaponSelect.options.Add(new Dropdown.OptionData("", emptyImage));
             if (currentChar.currentWeapon != null)
             {
-                weaponSelect.captionImage.sprite = currentChar.currentWeapon.image;
+                ammoCount.text = currentChar.currentWeapon.currentAmmo + "/" + currentChar.currentWeapon.magSize;
                 weaponSelect.captionText.text = currentChar.currentWeapon.selectId + ". " + currentChar.currentWeapon.name;
                 ammoCount.text = currentChar.currentWeapon.currentAmmo + "/" + currentChar.currentWeapon.magSize;
             }
@@ -358,7 +358,7 @@ public class SelectManager : MonoBehaviour
             grenadeSelect.options.Clear();
             if (currentChar.currentGrenade != null)
             {
-                grenadeSelect.captionImage.sprite = currentChar.currentGrenade.image;
+                grenadesCount.text = currentChar.currentGrenade.currentAmmo + "/" + currentChar.currentGrenade.magSize;
                 grenadeSelect.captionText.text = currentChar.currentGrenade.selectId + ". " + currentChar.currentGrenade.name;
                 grenadesCount.text = currentChar.currentGrenade.currentAmmo + "/" + currentChar.currentGrenade.magSize;
             }
@@ -387,20 +387,12 @@ public class SelectManager : MonoBehaviour
             healSelf.SetActive(false);
             changePose.SetActive(false);
 
-            weaponSelect.options.Add(new Dropdown.OptionData("0. " + currentChar.tankController.mainGun.name, currentChar.tankController.mainGun.image));
-            if (ReferenceEquals(currentChar.tankController.currentWeapon, currentChar.tankController.mainGun))
+            if (currentChar.tankController.mainGun != null)
             {
+                weaponSelect.options.Add(new Dropdown.OptionData("0. " + currentChar.tankController.mainGun.name, currentChar.tankController.mainGun.image));
+                ammoCount.text = currentChar.tankController.mainGun.currentAmmo + "/" + currentChar.tankController.mainGun.magSize;
                 weaponSelect.captionImage.sprite = currentChar.tankController.currentWeapon.image;
                 weaponSelect.captionText.text = "0. " + currentChar.tankController.currentWeapon.name;
-                ammoCount.text = currentChar.tankController.currentWeapon.currentAmmo + "/" + currentChar.tankController.currentWeapon.magSize;
-                
-                weaponSelect.value = 1;
-            }
-            else
-            {
-                weaponSelect.captionImage.sprite = emptyImage;
-                weaponSelect.captionText.text = "";
-                ammoCount.text = "";
                 weaponSelect.value = 0;
             }
 
@@ -410,14 +402,18 @@ public class SelectManager : MonoBehaviour
                 grenadeSelect.options.Add(new Dropdown.OptionData("0. Спаренный пулемёт", currentChar.tankController.pairedMgun.image)); //  + currentChar.tankController.pairedMgun.name
             if (currentChar.tankController.courseMgun != null)
                 grenadeSelect.options.Add(new Dropdown.OptionData("1. Курсовой пулемёт", currentChar.tankController.courseMgun.image)); //  + currentChar.tankController.courseMgun.name
-            if ((ReferenceEquals(currentChar.tankController.currentWeapon, currentChar.tankController.pairedMgun) || 
-                ReferenceEquals(currentChar.tankController.currentWeapon, currentChar.tankController.courseMgun)) && currentChar.tankController.currentWeapon != null)
+            bool selectedPairedMgun = ReferenceEquals(currentChar.tankController.currentWeapon, currentChar.tankController.pairedMgun);
+            bool selectedCourseMgun = ReferenceEquals(currentChar.tankController.currentWeapon, currentChar.tankController.courseMgun);
+            if ((selectedPairedMgun || selectedCourseMgun) && currentChar.tankController.currentWeapon != null)
             {
                 int index = 0;
                 if (ReferenceEquals(currentChar.tankController.currentWeapon, currentChar.tankController.courseMgun))
                     index = 1;
                 grenadeSelect.captionImage.sprite = currentChar.tankController.currentWeapon.image;
-                grenadeSelect.captionText.text = index + ". " + currentChar.currentGrenade.name;
+                if (selectedPairedMgun)
+                    grenadeSelect.captionText.text = "0. Спаренный пулемёт";
+                else if (selectedCourseMgun)
+                    grenadeSelect.captionText.text = "1. Курсовой пулемёт";
                 grenadesCount.text = currentChar.tankController.currentWeapon.currentAmmo + "/" + currentChar.tankController.currentWeapon.magSize;
                 grenadeSelect.value = index + 1;
             }
