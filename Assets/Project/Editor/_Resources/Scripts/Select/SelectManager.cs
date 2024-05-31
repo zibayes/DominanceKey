@@ -100,6 +100,7 @@ public class SelectManager : MonoBehaviour
             SelectingBoxRect.anchoredPosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
         } else if (Input.GetMouseButtonUp(0)) {
             selectTimer = 0f;
+            inventoryManager.standardStashView.isDragging = false;
         }
 
         if (Input.GetMouseButton(0) && !IsMouseOverUI() && !Input.GetKey(KeyCode.LeftControl) && !uiController.isActiveManualControl && 
@@ -225,8 +226,8 @@ public class SelectManager : MonoBehaviour
         SelectingBoxRect.sizeDelta = _sizeDelta;
 
         //Finished the Rect set up then set rect
-        _rect.height = SelectingBoxRect.sizeDelta.x;
-        _rect.width = SelectingBoxRect.sizeDelta.y;
+        _rect.height = SelectingBoxRect.sizeDelta.y;
+        _rect.width = SelectingBoxRect.sizeDelta.x;
         SelectingRect = _rect;
 
         //Only does a select check if the box is bigger than the minimum size.
@@ -241,24 +242,25 @@ public class SelectManager : MonoBehaviour
         foreach (SelectableCharacter soldier in selectableChars) {
             if (soldier.isActiveAndEnabled)
             {
-                Vector2 screenPos = selectCam.WorldToScreenPoint(soldier.transform.position);
-                if (SelectingRect.Contains(screenPos))
+                if (soldier.player == player)
                 {
-                    if (soldier.player == player)
+                    Vector2 screenPos = selectCam.WorldToScreenPoint(soldier.transform.position);
+                    if (SelectingRect.Contains(screenPos))
                     {
+
                         if (!selectedArmy.Contains(soldier))
                             selectedArmy.Add(soldier);
                         soldier.TurnOnSelector();
+                        if (selectedArmy.Any())
+                            selectedArmy[0].TurnOnCurrent();
                     }
-                    if (selectedArmy.Any())
-                        selectedArmy[0].TurnOnCurrent();
-                }
-                else if (!SelectingRect.Contains(screenPos) && soldier.player == player)
-                {
-                    soldier.TurnOffSelector();
+                    else
+                    {
+                        soldier.TurnOffSelector();
 
-                    if (selectedArmy.Contains(soldier))
-                        selectedArmy.Remove(soldier);
+                        if (selectedArmy.Contains(soldier))
+                            selectedArmy.Remove(soldier);
+                    }
                 }
             }
         }
@@ -334,6 +336,7 @@ public class SelectManager : MonoBehaviour
             {
                 ammoCount.text = currentChar.currentWeapon.currentAmmo + "/" + currentChar.currentWeapon.magSize;
                 weaponSelect.captionText.text = currentChar.currentWeapon.selectId + ". " + currentChar.currentWeapon.name;
+                weaponSelect.captionImage.sprite = currentChar.currentWeapon.image;
                 ammoCount.text = currentChar.currentWeapon.currentAmmo + "/" + currentChar.currentWeapon.magSize;
             }
             else

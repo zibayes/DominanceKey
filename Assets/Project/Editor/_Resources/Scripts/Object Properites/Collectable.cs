@@ -11,7 +11,6 @@ public class Collectable : MonoBehaviour
     public SampleScene inventoryManager;
     public SelectManager selectManager;
     public GameObject toolTip;
-    public GameObject currentToolTip;
     public CursorSwitcher cursorSwitcher;
     private Transform canvas;
 
@@ -41,6 +40,15 @@ public class Collectable : MonoBehaviour
 
         rigidbody = GetComponent<Rigidbody>();
         collider = GetComponent<Collider>();
+
+        toolTip = Instantiate(toolTip);
+        toolTip.SetActive(false);
+    }
+
+    private void Start()
+    {
+        toolTip.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
+        toolTip.transform.SetParent(canvas);
     }
 
     // Update is called once per frame
@@ -72,13 +80,10 @@ public class Collectable : MonoBehaviour
                 {
                     outline.OutlineWidth = 5;
                     outline.OutlineColor = Color.blue;
-                    if (currentToolTip == null)
-                    {
-                        currentToolTip = Instantiate(toolTip, Camera.main.WorldToScreenPoint(Input.mousePosition), Quaternion.LookRotation(Vector3.forward));
-                        currentToolTip.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
-                        currentToolTip.transform.SetParent(canvas);
-                    }
-                    var toolTipText = currentToolTip.transform.Find("TooltipStroke").Find("TooltipBackground");
+                    toolTip.SetActive(true);
+                    toolTip.transform.position = Camera.main.WorldToScreenPoint(Input.mousePosition);
+                    toolTip.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+                    var toolTipText = toolTip.transform.Find("TooltipStroke").Find("TooltipBackground");
                     toolTipText.transform.Find("TooltipName").GetComponent<TextMeshProUGUI>().text = itemName;
                     toolTipText.transform.Find("TooltipSpecialization").GetComponent<TextMeshProUGUI>().text = type;
                     float tooltipSize;
@@ -87,7 +92,7 @@ public class Collectable : MonoBehaviour
                     else
                         tooltipSize = type.Length;
 
-                    currentToolTip.transform.Find("TooltipStroke").GetComponent<RectTransform>().sizeDelta = new Vector2(tooltipSize * 9 + 10, currentToolTip.transform.Find("TooltipStroke").GetComponent<RectTransform>().sizeDelta.y);
+                    toolTip.transform.Find("TooltipStroke").GetComponent<RectTransform>().sizeDelta = new Vector2(tooltipSize * 9 + 10, toolTip.transform.Find("TooltipStroke").GetComponent<RectTransform>().sizeDelta.y);
                     toolTipText.GetComponent<RectTransform>().sizeDelta = new Vector2(tooltipSize * 9 + 10, toolTipText.GetComponent<RectTransform>().sizeDelta.y);
 
                     if (selectManager.selectedArmy.Any() && !Input.GetKey(KeyCode.LeftControl) && !selectManager.uiController.isActiveManualControl && !selectManager.uiController.isActiveAttack && !selectManager.uiController.isActiveRotate)
@@ -107,7 +112,7 @@ public class Collectable : MonoBehaviour
                 }
                 outline.OutlineColor = Color.red;
                 if (!IsMouseOverUI())
-                    Destroy(currentToolTip);
+                    toolTip.SetActive(false);
                 if (!Input.GetKey(KeyCode.LeftControl) && !selectManager.uiController.isActiveManualControl && !selectManager.uiController.isActiveAttack && !selectManager.uiController.isActiveRotate && cursorSwitcher.current.objectIndex != 6)
                     cursorSwitcher.ChangeType("default");
                 if (Input.GetMouseButton(1))
@@ -117,7 +122,7 @@ public class Collectable : MonoBehaviour
 
         if (wantToPickUp && (gameObject.transform.position - selectManager.selectedArmy[0].transform.position).magnitude <= collectDistance)
         {
-            Destroy(currentToolTip);
+            toolTip.SetActive(false);
             selectManager.selectedArmy[0].inventory_items.Add(new ItemCellData(inventoryItem));
             if (GameObject.Find("Inventory") != null)
                 inventoryManager.StartCoroutine(inventoryManager.InsertCoroutine(selectManager.selectedArmy[0].inventory_items));

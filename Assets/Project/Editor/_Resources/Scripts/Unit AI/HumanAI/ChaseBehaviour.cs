@@ -42,8 +42,7 @@ public class ChaseBehaviour : StateMachineBehaviour
                     }
                     if (playerController.attackType != "hold")
                     {
-                        // playerController.rig.transform.position = playerController.unitVision.currentTarget.transform.position + aimingOffset;
-                        playerController.Aiming(playerController.unitVision.currentTarget.transform.position + aimingOffset, 0f, false);
+                        playerController.Aiming(playerController.unitVision.currentTarget.transform.position + aimingOffset, false);
                     }
                     else
                     {

@@ -89,7 +89,7 @@ public class AttackBehaviour : StateMachineBehaviour
                                         currentOffset = aimingOffsetSitTarget;
                                     else if (playerController.unitVision.currentTarget.animator.GetBool("Lie"))
                                         currentOffset = aimingOffsetLieTarget;
-                                    playerController.Aiming(playerController.unitVision.currentTarget.transform.position + currentOffset, spreadSize, false);
+                                    playerController.Aiming(playerController.unitVision.currentTarget.transform.position + currentOffset, false);
 
                                     if (burstSize == 0)
                                     {

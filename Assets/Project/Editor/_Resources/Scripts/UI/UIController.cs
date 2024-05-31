@@ -69,10 +69,18 @@ public class UIController : MonoBehaviour
     public Sprite rotateIconInactive;
     public Sprite rotateIconActive;
 
+    public GameObject toolTip;
+    public Transform canvas;
+
     void Start()
     {
         Minimap.SetActive(isActiveMinimap);
         Inventory.SetActive(isActiveInventory);
+
+        toolTip = Instantiate(toolTip);
+        toolTip.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
+        toolTip.transform.SetParent(canvas);
+        toolTip.SetActive(false);
     }
 
     public void ToggleMinimap()
@@ -294,7 +302,7 @@ public class UIController : MonoBehaviour
             {
                 if (selectManager.selectedArmy[0].playerController != null)
                 {
-                    playerWithCommand.Aiming(hit.point, spreadSize, false);
+                    playerWithCommand.Aiming(hit.point, false);
                     StartCoroutine(activeAttackOff(0.1f));
                     if (!attackWasCalled)
                         StartCoroutine(makeShot(spreadSize, 0.3f));

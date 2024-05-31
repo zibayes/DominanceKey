@@ -263,6 +263,7 @@ namespace VariableInventorySystem
 
         public virtual void OnDroped(bool isDroped)
         {
+            isDragging = false;
             conditionTransform.gameObject.SetActive(false);
             condition.color = defaultColor;
 

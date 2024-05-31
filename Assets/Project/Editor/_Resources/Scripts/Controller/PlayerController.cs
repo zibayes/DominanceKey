@@ -79,7 +79,7 @@ public class PlayerController : MonoBehaviour
     public bool makingNoise = false;
     public float makingNoiseCooldown = 1f;
     public float makingNoiseTime = 0;
-    public float noiseDetectionRaius= 30f;
+    public float noiseDetectionRaius = 30f;
     public float noiseDetectionCooldown = 15f;
     public float noiseDetectionTime = 0;
     public PlayerController noiseDetectionTarget = null;
@@ -98,7 +98,7 @@ public class PlayerController : MonoBehaviour
     public float throwForce = 10f;
     public float throwUpForce = 5f;
     public LineRenderer lineRenderer;
-    public GameObject grenadeTrajectorySphere; 
+    public GameObject grenadeTrajectorySphere;
 
     public int rightMouseButtonTaps = 0;
 
@@ -116,8 +116,19 @@ public class PlayerController : MonoBehaviour
         lineDrawerNoContact = new LineDrawer();
         lineRenderer = Instantiate(lineRenderer);
         lineRenderer.enabled = false;
+
         grenadeTrajectorySphere = Instantiate(grenadeTrajectorySphere);
         grenadeTrajectorySphere.SetActive(false);
+
+        aimCircle = Instantiate(aimCircle);
+        aimCircle.gameObject.SetActive(false);
+
+        rangefinder = Instantiate(rangefinder);
+        rangefinder.color = new Color32(255, 194, 230, 255);
+        rangefinder.outlineWidth = 0.4f;
+        rangefinder.outlineColor = new Color32(0, 0, 0, 255);
+        rangefinder.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+        rangefinder.gameObject.SetActive(false);
 
         selectManager = GameObject.Find("SelectingBox").GetComponent<SelectManager>();
         inventoryManager = GameObject.Find("CanvasParent").GetComponent<SampleScene>();
@@ -129,6 +140,11 @@ public class PlayerController : MonoBehaviour
 
         rigidbodies = new List<Rigidbody>(GetComponentsInChildren<Rigidbody>());
         colliders = new List<Collider>(GetComponentsInChildren<Collider>());
+    }
+
+    void Start()
+    {
+        rangefinder.transform.SetParent(canvas);
     }
 
     // Update is called once per frame
@@ -356,7 +372,7 @@ public class PlayerController : MonoBehaviour
                         animator.SetBool("Move", true);
                         firingAimDecrease += 0.15f;
                     }
-                        
+
                     rigidbody.velocity = Vector3.ClampMagnitude(directionVector, 1) * speed * 1.5f;
 
                     var localCoords = transform.InverseTransformDirection(directionVector);
@@ -385,8 +401,7 @@ public class PlayerController : MonoBehaviour
                     // Draw grenade throw trajectory
                     if ((weaponHolder.position - hit.point).magnitude <= 18.5f)
                     {
-                        HideWhiteLine();
-                        HideRedLine();
+                        hideAimingMarks();
                         lineRenderer.enabled = true;
                         grenadeTrajectorySphere.SetActive(true);
                         var flightTime = (weaponHolder.position - hit.point).magnitude * 0.2f;
@@ -394,13 +409,7 @@ public class PlayerController : MonoBehaviour
                         ShowGrenadeTrajectory(weaponHolder.position, throwForceGrenade, hit.point);
                         grenadeTrajectorySphere.transform.position = lineRenderer.GetPosition(lineRenderer.positionCount - 1);
 
-                        rangefinder.text = System.Math.Round((this.transform.position - hit.point).magnitude, 1) + "m";
-                        rangefinder.outlineWidth = 0.4f;
-                        rangefinder.color = new Color32(255, 194, 230, 255);
-                        rangefinder.outlineColor = new Color32(0, 0, 0, 255);
-                        var rangefinderTmp = Instantiate(rangefinder, Camera.main.WorldToScreenPoint(hit.point), Quaternion.LookRotation(Vector3.forward));
-                        rangefinderTmp.transform.SetParent(canvas);
-                        Destroy(rangefinderTmp, 0.02f);
+                        showRangeFinder(hit.point);
 
                         // Throw grenade
                         if (Input.GetMouseButtonUp(0) && animator.GetBool("ThrowGrenadeOver") && !selectManager.IsMouseOverUI())
@@ -416,7 +425,7 @@ public class PlayerController : MonoBehaviour
                     }
                 }
                 else
-                { 
+                {
                     // Aiming
                     lineRenderer.enabled = false;
                     grenadeTrajectorySphere.SetActive(false);
@@ -428,12 +437,11 @@ public class PlayerController : MonoBehaviour
                         ray = Camera.main.ScreenPointToRay(Input.mousePosition);
                         if (Physics.Raycast(ray, out hit, 1000))
                         {
-                            Aiming(hit.point, spreadSize, true);
+                            Aiming(hit.point, true);
                         }
                         else
                         {
-                            HideWhiteLine();
-                            HideRedLine();
+                            hideAimingMarks();
                         }
 
                         // Shoot
@@ -448,8 +456,7 @@ public class PlayerController : MonoBehaviour
             {
                 if (selection.currentWeapon != null)
                 {
-                    HideWhiteLine();
-                    HideRedLine();
+                    hideAimingMarks();
                 }
                 lineRenderer.enabled = false;
                 grenadeTrajectorySphere.SetActive(false);
@@ -613,43 +620,28 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public void Aiming(Vector3 pointToRotate, float spreadSize, bool manualControl)
+    public void Aiming(Vector3 pointToRotate, bool manualControl)
     {
         Rotate(pointToRotate);
         animator.SetBool("Aim", true);
-        
+
         if (manualControl)
         {
             RaycastHit hitBarrier;
-            // Ray aimRay = new Ray(foresight3.transform.position, hit.point - foresight3.transform.position);
             Ray aimRay = new Ray(foresight3.transform.position, foresight3.transform.forward);
             Vector3 finalPoint;
             if (Physics.Raycast(aimRay, out hitBarrier, 1000))
             {
-                DrawWhiteLine(hitBarrier.point);
                 var noContactHit = hitBarrier.point + foresight3.transform.forward * (pointToRotate - hitBarrier.point).magnitude;
                 DrawRedLine(hitBarrier, noContactHit);
                 finalPoint = hitBarrier.point;
             }
             else
             {
-                DrawWhiteLine(aimRay.GetPoint(100));
                 finalPoint = aimRay.GetPoint(100);
-                // DrawWhiteLine(hit.point);
                 HideRedLine();
-                // finalPoint = hit;
             }
-            var tmpSize = (this.transform.position - finalPoint).magnitude / spreadSize;
-            aimCircle.size = new Vector2(tmpSize, tmpSize);
-            var aimCircleTmp = Instantiate(aimCircle, finalPoint, Quaternion.LookRotation(aimRay.direction));
-            Destroy(aimCircleTmp, 0.02f);
-            rangefinder.text = System.Math.Round((this.transform.position - finalPoint).magnitude, 1) + "m";
-            rangefinder.color = new Color32(255, 194, 230, 255);
-            rangefinder.outlineWidth = 0.4f;
-            rangefinder.outlineColor = new Color32(0, 0, 0, 255);
-            var rangefinderTmp = Instantiate(rangefinder, Camera.main.WorldToScreenPoint(finalPoint), Quaternion.LookRotation(Vector3.forward));
-            rangefinderTmp.transform.SetParent(canvas);
-            Destroy(rangefinderTmp, 0.02f);
+            showAimingMarks(finalPoint, aimRay);
         }
     }
 
@@ -888,6 +880,33 @@ public class PlayerController : MonoBehaviour
     {
         yield return new WaitForSeconds(timeToWait);
         animator.SetBool("ChangePositionOver", true);
+    }
+
+    public void showAimingMarks(Vector3 finalPoint, Ray aimRay)
+    {
+        DrawWhiteLine(finalPoint);
+        var tmpSize = (this.transform.position - finalPoint).magnitude / spreadSize;
+        aimCircle.size = new Vector2(tmpSize, tmpSize);
+        aimCircle.gameObject.SetActive(true);
+        aimCircle.transform.position = finalPoint;
+        aimCircle.transform.rotation = Quaternion.LookRotation(aimRay.direction);
+
+        showRangeFinder(finalPoint);
+    }
+
+    public void showRangeFinder(Vector3 finalPoint)
+    {
+        rangefinder.gameObject.SetActive(true);
+        rangefinder.text = System.Math.Round((this.transform.position - finalPoint).magnitude, 1) + "m";
+        rangefinder.transform.position = Camera.main.WorldToScreenPoint(finalPoint);
+    }
+
+    public void hideAimingMarks()
+    {
+        rangefinder.gameObject.SetActive(false);
+        aimCircle.gameObject.SetActive(false);
+        HideWhiteLine();
+        HideRedLine();
     }
 
     public void DrawWhiteLine(Vector3 hitBarrier)
@@ -1172,8 +1191,7 @@ public class PlayerController : MonoBehaviour
     {
         lineRenderer.enabled = false;
         grenadeTrajectorySphere.SetActive(false);
-        HideWhiteLine();
-        HideRedLine();
+        hideAimingMarks();
 
         var armyCount = selectManager.selectedArmy.Count;
         var isThisCurrentChar = IsThisCurrentChar();
