@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 using VariableCode.Cursor;
+using Random = UnityEngine.Random;
 
 public class TankController : MonoBehaviour
 {
@@ -151,16 +153,33 @@ public class TankController : MonoBehaviour
 
         audioSourceMove.Stop();
 
+        aimCircle = Instantiate(aimCircle);
+        aimCircle.gameObject.SetActive(false);
+
+        rangefinder = Instantiate(rangefinder);
+        rangefinder.color = new Color32(255, 194, 230, 255);
+        rangefinder.outlineWidth = 0.4f;
+        rangefinder.outlineColor = new Color32(0, 0, 0, 255);
+        rangefinder.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+        rangefinder.gameObject.SetActive(false);
+    }
+
+    void Start()
+    {
+        rangefinder.transform.SetParent(canvas);
+
         foreach (PlayerController crewmate in crew)
         {
             if (crewmate != null)
             {
+                crewmate.placeInTank = Array.IndexOf(crew, crewmate);
                 crewmate.enabled = false;
                 crewmate.selection.enabled = false;
                 crewmate.gameObject.SetActive(false);
             }
         }
     }
+
     void Update()
     {
         // Aim decrease decrement
@@ -450,8 +469,7 @@ public class TankController : MonoBehaviour
                         }
                         else
                         {
-                            HideWhiteLine();
-                            HideRedLine();
+                            hideAimingMarks();
                         }
 
                         // Shoot
@@ -470,15 +488,13 @@ public class TankController : MonoBehaviour
                 }
                 else
                 {
-                    HideWhiteLine();
-                    HideRedLine();
+                    hideAimingMarks();
                 }
             }
             else
             {
                 audioSourceTurret.Stop();
-                HideWhiteLine();
-                HideRedLine();
+                hideAimingMarks();
                 rigidbody.velocity = Vector3.zero;
             }
         }
@@ -556,28 +572,16 @@ public class TankController : MonoBehaviour
             Vector3 finalPoint;
             if (Physics.Raycast(aimRay, out hitBarrier, 1000))
             {
-                DrawWhiteLine(hitBarrier.point);
                 var noContactHit = hitBarrier.point + currentWeapon.model.transform.forward * (pointToRotate - hitBarrier.point).magnitude;
                 DrawRedLine(hitBarrier, noContactHit);
                 finalPoint = hitBarrier.point;
             }
             else
             {
-                DrawWhiteLine(aimRay.GetPoint(100));
                 finalPoint = aimRay.GetPoint(100);
                 HideRedLine();
             }
-            var tmpSize = (this.transform.position - finalPoint).magnitude / spreadSize;
-            aimCircle.size = new Vector2(tmpSize, tmpSize);
-            var aimCircleTmp = Instantiate(aimCircle, finalPoint, Quaternion.LookRotation(aimRay.direction));
-            Destroy(aimCircleTmp, 0.02f);
-            rangefinder.text = System.Math.Round((this.transform.position - finalPoint).magnitude, 1) + "m";
-            rangefinder.color = new Color32(255, 194, 230, 255);
-            rangefinder.outlineWidth = 0.4f;
-            rangefinder.outlineColor = new Color32(0, 0, 0, 255);
-            var rangefinderTmp = Instantiate(rangefinder, Camera.main.WorldToScreenPoint(finalPoint), Quaternion.LookRotation(Vector3.forward));
-            rangefinderTmp.transform.SetParent(canvas);
-            Destroy(rangefinderTmp, 0.02f);
+            showAimingMarks(finalPoint, aimRay);
         }
     }
 
@@ -860,8 +864,7 @@ public class TankController : MonoBehaviour
 
     public void Die()
     {
-        HideWhiteLine();
-        HideRedLine();
+        hideAimingMarks();
 
         var armyCount = selectManager.selectedArmy.Count;
         var isThisCurrentChar = IsThisCurrentChar();
@@ -897,10 +900,14 @@ public class TankController : MonoBehaviour
                     collider.enabled = false;
             }
         }
-
+        
+        selectManager.selectableChars.Remove(getDriver().selection);
         setDriver(null);
+        selectManager.selectableChars.Remove(getGunner().selection);
         setGunner(null);
+        selectManager.selectableChars.Remove(getCharger().selection);
         setCharger(null);
+        selectManager.selectableChars.Remove(getCommander().selection);
         setCommander(null);
 
         blackSmoke.Play();
@@ -930,6 +937,33 @@ public class TankController : MonoBehaviour
     {
         yield return new WaitForSeconds(timeToWait);
         rightMouseButtonTaps = 0;
+    }
+
+    public void showAimingMarks(Vector3 finalPoint, Ray aimRay)
+    {
+        DrawWhiteLine(finalPoint);
+        var tmpSize = (this.transform.position - finalPoint).magnitude / spreadSize;
+        aimCircle.size = new Vector2(tmpSize, tmpSize);
+        aimCircle.gameObject.SetActive(true);
+        aimCircle.transform.position = finalPoint;
+        aimCircle.transform.rotation = Quaternion.LookRotation(aimRay.direction);
+
+        showRangeFinder(finalPoint);
+    }
+
+    public void showRangeFinder(Vector3 finalPoint)
+    {
+        rangefinder.gameObject.SetActive(true);
+        rangefinder.text = System.Math.Round((this.transform.position - finalPoint).magnitude, 1) + "m";
+        rangefinder.transform.position = Camera.main.WorldToScreenPoint(finalPoint);
+    }
+
+    public void hideAimingMarks()
+    {
+        rangefinder.gameObject.SetActive(false);
+        aimCircle.gameObject.SetActive(false);
+        HideWhiteLine();
+        HideRedLine();
     }
 
     public void DrawWhiteLine(Vector3 hitBarrier)

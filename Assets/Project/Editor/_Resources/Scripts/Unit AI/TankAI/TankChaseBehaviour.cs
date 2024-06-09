@@ -47,6 +47,7 @@ public class TankChaseBehaviour : StateMachineBehaviour
                     (tankController.movementType == "hold" && distance < tankController.currentWeapon.effectiveDistance * 1.5f)) && tankController.tankVision.seeEnemy)
                 {
                     animator.SetBool("AttackAI", true);
+                    animator.SetBool("ChaseAI", false);
                 }
                 if (distance > tankController.currentWeapon.effectiveDistance * 1.5f)
                 {

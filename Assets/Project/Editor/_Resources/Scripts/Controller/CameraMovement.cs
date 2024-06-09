@@ -18,8 +18,8 @@ public class CameraMovement : MonoBehaviour
     public float smoothing = 1.0f;
     private float X, Y;
 
-    private float mapBorderX = 100f; // 20f
-    private float mapBorderZ = 100f; // 30f
+    private float mapBorderX = 40f; // 20f
+    private float mapBorderZ = 50f; // 30f
 
     // Start is called before the first frame update
     void Start()
@@ -100,9 +100,9 @@ public class CameraMovement : MonoBehaviour
             float zPos = transform.position.z;
             transform.Translate(new Vector3(camPosZoom.x, camPosZoom.y, Mathf.Clamp(camPosZoom.z, -40f, 40f)));
             transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z);
-            /*
-            float yPos = Mathf.Clamp(transform.position.y, 12, 30);
-            if (yPos <= 12 || yPos >= 30)
+            
+            float yPos = Mathf.Clamp(transform.position.y, 10, 30);
+            if (yPos <= 10 || yPos >= 30)
             {
                 transform.position = new Vector3(xPos, yPos, zPos);
             }
@@ -110,7 +110,6 @@ public class CameraMovement : MonoBehaviour
             {
                 transform.position = new Vector3(transform.position.x, yPos, transform.position.z);
             }
-            */
         }
         
 

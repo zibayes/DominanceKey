@@ -22,9 +22,17 @@ public class TankAttackBehaviour : StateMachineBehaviour
     {
         if (animator.GetBool("EnableAI") && tankController.getAnyCrewmate() != null)
         {
-            if (tankController.tankVision.currentTarget != null && tankController.tankVision.seeEnemy)
+            if ((tankController.tankVision.currentTarget != null || tankController.tankVision.currentTankTarget != null) && tankController.tankVision.seeEnemy)
             {
-                float distance = Vector3.Distance(tankController.transform.position, tankController.tankVision.currentTarget.transform.position);
+                float distance;
+                if (tankController.tankVision.currentTarget != null)
+                {
+                    distance = Vector3.Distance(tankController.transform.position, tankController.tankVision.currentTarget.transform.position);
+                }
+                else // if (tankController.tankVision.currentTankTarget != null)
+                {
+                    distance = Vector3.Distance(tankController.transform.position, tankController.tankVision.currentTankTarget.transform.position);
+                }
                 if ((tankController.movementType == "free" && distance >= tankController.currentWeapon.effectiveDistance) || 
                     (tankController.movementType == "hold" && distance >= tankController.currentWeapon.effectiveDistance * 1.5f))
                 {
@@ -41,12 +49,19 @@ public class TankAttackBehaviour : StateMachineBehaviour
                                 tankController.setGunner(tankController.getCrewmateWithLowestPriority());
                             if (tankController.getGunner() != null)
                             {
-                                var currentOffset = aimingOffsetStandTarget;
-                                if (tankController.tankVision.currentTarget.animator.GetBool("Sit"))
-                                    currentOffset = aimingOffsetSitTarget;
-                                else if (tankController.tankVision.currentTarget.animator.GetBool("Lie"))
-                                    currentOffset = aimingOffsetLieTarget;
-                                tankController.Rotate(tankController.tankVision.currentTarget.transform.position + currentOffset);
+                                if (tankController.tankVision.currentTarget != null)
+                                {
+                                    var currentOffset = aimingOffsetStandTarget;
+                                    if (tankController.tankVision.currentTarget.animator.GetBool("Sit"))
+                                        currentOffset = aimingOffsetSitTarget;
+                                    else if (tankController.tankVision.currentTarget.animator.GetBool("Lie"))
+                                        currentOffset = aimingOffsetLieTarget;
+                                    tankController.Rotate(tankController.tankVision.currentTarget.transform.position + currentOffset);
+                                } else if (tankController.tankVision.currentTankTarget != null)
+                                {
+                                    tankController.Rotate(tankController.tankVision.currentTankTarget.transform.position);
+                                }
+                                
 
                                 if (burstSize == 0)
                                 {
